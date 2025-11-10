@@ -1,0 +1,18 @@
+{
+  "url": "https://andrewisfrequency.com/",
+  "status_code": 200,
+  "content_type": "text/html; charset=utf-8",
+  "server": "cloudflare",
+  "technologies": {},
+  "structure": {
+    "title": "soul-system-website",
+    "meta_count": 11
+  },
+  "resources": {
+    "external_css": 1,
+    "inline_css": 0,
+    "external_js": 2,
+    "inline_js": 0,
+    "images": 0
+  }
+}
