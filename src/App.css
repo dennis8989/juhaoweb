@@ -68,6 +68,26 @@
   width: 100%;
 }
 
+.nav-appointment-link {
+  background: var(--gradient-1);
+  color: white !important;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.nav-appointment-link::after {
+  display: none;
+}
+
+.nav-appointment-link:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  color: white !important;
+}
+
 /* Hero Section */
 .hero {
   position: relative;

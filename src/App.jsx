@@ -44,6 +44,16 @@ function Navbar() {
           <li><a href="#about">關於我</a></li>
           <li><a href="#articles">衛教文章</a></li>
           <li><a href="#contact">聯絡</a></li>
+          <li>
+            <a
+              href="https://master.d29yyigp5o4a8q.amplifyapp.com/hansheng"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-appointment-link"
+            >
+              預約掛號
+            </a>
+          </li>
         </ul>
       </div>
     </nav>
@@ -70,7 +80,14 @@ function HeroSection({ isLoaded }) {
         </p>
         <div className="hero-buttons">
           <a href="#about" className="btn btn-primary">了解更多</a>
-          <a href="#contact" className="btn btn-secondary">預約門診</a>
+          <a
+            href="https://master.d29yyigp5o4a8q.amplifyapp.com/hansheng"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+          >
+            預約門診
+          </a>
         </div>
       </div>
       <div className="scroll-indicator">
@@ -370,6 +387,17 @@ function ContactSection() {
             <p><strong>地址：</strong>新北市板橋區中山路一段104號</p>
             <p><strong>電話：</strong>02-29518999</p>
             <p><strong>電子信箱：</strong>hsobsmarketing1@gmail.com</p>
+            <div style={{ marginTop: '1.5rem' }}>
+              <a
+                href="https://master.d29yyigp5o4a8q.amplifyapp.com/hansheng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ width: '100%', textAlign: 'center', display: 'block' }}
+              >
+                📅 線上預約掛號
+              </a>
+            </div>
           </div>
           <div className="info-card">
             <h3>📅 門診資訊</h3>
@@ -419,9 +447,20 @@ function ContactSection() {
               required
             ></textarea>
           </div>
-          <button type="submit" className="btn btn-primary btn-large">
-            送出預約諮詢
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button type="submit" className="btn btn-primary btn-large" style={{ flex: '1', minWidth: '200px' }}>
+              送出預約諮詢
+            </button>
+            <a
+              href="https://master.d29yyigp5o4a8q.amplifyapp.com/hansheng"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary btn-large"
+              style={{ flex: '1', minWidth: '200px', textAlign: 'center', textDecoration: 'none' }}
+            >
+              📅 線上預約掛號
+            </a>
+          </div>
         </form>
       </div>
     </section>
