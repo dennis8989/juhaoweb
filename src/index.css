@@ -5,28 +5,33 @@
 }
 
 :root {
-  --primary-color: #2563eb;
-  --secondary-color: #3b82f6;
-  --accent-color: #0ea5e9;
+  --ink: #3d342f;
+  --ink-soft: #5c534c;
+  --gold: #9e7448;
+  --gold-soft: #c8b9a6;
+  --cream: #f2efeb;
+  --cream-deep: #e8e2da;
+  --paper: #ffffff;
+  --primary-color: #9e7448;
+  --secondary-color: #b08a5c;
+  --accent-color: #c8b9a6;
   --bg-dark: #ffffff;
-  --bg-light: #f8fafc;
-  --bg-section: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --gradient-1: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-  --gradient-2: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-  --gradient-3: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --bg-light: #f7f4f0;
+  --bg-section: #f2efeb;
+  --text-primary: #3d342f;
+  --text-secondary: #5c534c;
+  --text-muted: #8a8178;
+  --border-color: #e4ddd4;
+  --shadow-sm: 0 1px 2px 0 rgba(61, 52, 47, 0.06);
+  --shadow-md: 0 8px 20px -8px rgba(61, 52, 47, 0.18);
+  --shadow-lg: 0 16px 32px -16px rgba(61, 52, 47, 0.22);
+  --gradient-1: linear-gradient(135deg, #9e7448 0%, #b08a5c 100%);
+  --gradient-2: linear-gradient(135deg, #c8b9a6 0%, #9e7448 100%);
+  --gradient-3: linear-gradient(135deg, #3d342f 0%, #5c534c 100%);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg-dark);
