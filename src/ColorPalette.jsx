@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'juhao-theme'
 const DEFAULT_THEME = {
-  bar: '#3d342f',
+  bar: '#2c2622',
   content: '#ffffff',
 }
 
 const PRESETS = [
-  { name: 'COMO', bar: '#3d342f', content: '#ffffff' },
+  { name: 'COMO', bar: '#2c2622', content: '#ffffff' },
   { name: '墨黑', bar: '#000000', content: '#f5f2ee' },
   { name: '炭灰', bar: '#2b2b2b', content: '#f7f7f5' },
   { name: '森綠', bar: '#2f3d34', content: '#f4f6f2' },
@@ -91,7 +91,25 @@ function loadTheme() {
 
 applyTheme(loadTheme())
 
+function themeEditorEnabled() {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('theme') === '1') {
+      localStorage.setItem('juhao-theme-editor', '1')
+      return true
+    }
+    if (params.get('theme') === '0') {
+      localStorage.removeItem('juhao-theme-editor')
+      return false
+    }
+    return localStorage.getItem('juhao-theme-editor') === '1'
+  } catch {
+    return false
+  }
+}
+
 export default function ColorPalette() {
+  const [enabled] = useState(themeEditorEnabled)
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useState(loadTheme)
   const [barText, setBarText] = useState(theme.bar)
@@ -103,6 +121,8 @@ export default function ColorPalette() {
     setBarText(theme.bar)
     setContentText(theme.content)
   }, [theme])
+
+  if (!enabled) return null
 
   const apply = (next) => {
     setTheme(next)
@@ -159,7 +179,7 @@ export default function ColorPalette() {
         <button type="button" className="color-reset" onClick={() => apply({ ...DEFAULT_THEME })}>
           還原預設
         </button>
-        <p className="color-hint">可點色盤，或直接輸入色號，例如 #000000、#3D342F</p>
+        <p className="color-hint">正式站預設隱藏。網址加 ?theme=1 可開啟調色；?theme=0 關閉。</p>
       </div>
     </aside>
   )
