@@ -93,9 +93,8 @@ function App() {
       <main className={`page ${route.view === 'about' ? 'page-about' : ''}`}>
         {route.view !== 'about' && (
           <header className="page-hero">
-            <p className="page-kicker">兒童成長發育專科 · 小兒內分泌</p>
-            <h1>李如浩醫師</h1>
-            <p className="page-english">JU-HAO LEE, MD</p>
+            <p className="page-brand">李如浩醫師</p>
+            <p className="page-english">JU-HAO LEE, MD · 兒童成長發育專科</p>
           </header>
         )}
 
@@ -114,7 +113,9 @@ function App() {
           </nav>
         )}
 
-        <PageBody route={route} />
+        <div className="page-body fade-in" key={`${route.view}-${route.sub || ''}-${route.extra || ''}`}>
+          <PageBody route={route} />
+        </div>
       </main>
       <ClinicHours />
       <Footer />
@@ -252,9 +253,7 @@ function SectionFrame({ title, intro, children }) {
   return (
     <section className="content-section">
       <div className="container">
-        <h2 className="section-title">
-          <span className="gradient-text">{title}</span>
-        </h2>
+        <h2 className="section-title">{title}</h2>
         {intro && <p className="section-lead">{intro}</p>}
         {children}
       </div>
@@ -274,21 +273,42 @@ function goldText(text) {
 function AboutPage() {
   return (
     <>
-      <section className="block-white">
-        <div className="container about-layout">
-          <div className="about-story">
-            {aboutStory.map((paragraph) => (
-              <p key={paragraph.slice(0, 24)}>{goldText(paragraph)}</p>
-            ))}
+      <section className="about-intro">
+        <div className="container about-intro-inner">
+          <div className="about-intro-copy">
+            <p className="about-eyebrow">兒童成長發育專科 · 小兒內分泌</p>
+            <h1 className="about-brand">{aboutProfile.name}</h1>
+            <p className="about-brand-en">{aboutProfile.english}</p>
+            <p className="about-lead">
+              以醫學實證與臨床經驗為本，陪伴孩子的身高、骨齡、性早熟、青春期與生長激素治療。
+            </p>
+            <div className="about-actions">
+              <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                預約掛號
+              </a>
+              <a href="#contact" className="btn-ghost">門診時間</a>
+            </div>
           </div>
           <aside className="about-portrait">
             <div className="portrait-frame">
               <img className="portrait-mark" src={logoSrc} alt="" />
-              <h3>{aboutProfile.name}</h3>
+              <h2>{aboutProfile.name}</h2>
               <p className="about-card-en">{aboutProfile.english}</p>
-              <p>兒童成長發育專科</p>
+              <p className="portrait-role">兒童成長發育專科</p>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section className="block-white">
+        <div className="container about-layout">
+          <div className="about-story">
+            <h2 className="block-title">醫師理念</h2>
+            <p className="block-kicker">APPROACH</p>
+            {aboutStory.map((paragraph) => (
+              <p key={paragraph.slice(0, 24)}>{goldText(paragraph)}</p>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -344,7 +364,7 @@ function CasePage({ sub }) {
   return (
     <SectionFrame title={meta.title} intro={meta.intro}>
       <div className="empty-note">
-        <p>此分類之個案分享將陸續刊出。以下先放相關衛教，方便家長對照閱讀。</p>
+        <p>個案圖文整理中。以下先提供相關衛教，方便家長對照閱讀；正式案例刊出後會更新於此。</p>
       </div>
       {!sub && (
         <div className="case-links">
@@ -377,13 +397,10 @@ function ArticleGrid({ items, emptyText }) {
           go(`/article/${article.id}`)
         }}>
           <div className="article-card-content">
-            <div className="article-date-badge">衛教文章</div>
             <h3 className="article-card-title">{article.title}</h3>
             <p className="article-card-excerpt">{article.excerpt}</p>
-            <div className="article-card-footer">
-              <span className="read-more">閱讀更多 →</span>
-            </div>
-            </div>
+            <span className="read-more">閱讀全文</span>
+          </div>
         </a>
       ))}
     </div>
@@ -481,6 +498,7 @@ function ClinicHours() {
     <section id="contact" className="clinic-hours">
       <div className="container">
         <h2 className="clinic-title">如浩醫師門診表</h2>
+        <p className="clinic-lead">菡生婦幼診所 · 宥宥婦幼診所 · 請以線上掛號確認當日診次</p>
         <div className="schedule-board">
           <div className="schedule-grid" aria-hidden="false">
             <div className="schedule-corner" />
@@ -509,6 +527,11 @@ function ClinicHours() {
               </li>
             ))}
           </ul>
+        </div>
+        <div className="clinic-cta">
+          <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            線上預約掛號
+          </a>
         </div>
       </div>
     </section>
@@ -540,8 +563,8 @@ function Footer() {
           <div className="footer-section">
             <h4>菡生婦幼診所</h4>
             <ul>
-              <li>📍 新北市板橋區中山路一段104號</li>
-              <li>📞 02-29518999</li>
+              <li>新北市板橋區中山路一段104號</li>
+              <li>電話 02-29518999</li>
               <li>
                 <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer">線上預約掛號</a>
               </li>
