@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import ColorPalette from './ColorPalette.jsx'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
@@ -117,6 +118,7 @@ function App() {
       </main>
       <ClinicHours />
       <Footer />
+      <ColorPalette />
     </div>
   )
 }
@@ -512,8 +514,10 @@ function ClinicHours() {
     </section>
   )
 }
+
+function Footer() {
   return (
-    <footer id="contact" className="footer">
+    <footer className="footer">
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
