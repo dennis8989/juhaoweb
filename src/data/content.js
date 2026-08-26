@@ -1,5 +1,29 @@
-export const APPOINTMENT_URL = 'https://master.d29yyigp5o4a8q.amplifyapp.com/hansheng'
+export const APPOINTMENT_URL = 'https://master.d29yyigp5o4a8q.amplifyapp.com/EntryPage'
 export const FACEBOOK_PAGE_URL = 'https://www.facebook.com/profile.php?id=61564963711521'
+export const INSTAGRAM_URL = 'https://www.instagram.com/lee_jhow'
+
+export const clinicLocations = [
+  {
+    id: 'hansheng',
+    name: '菡生婦幼診所',
+    address: '新北市板橋區中山路一段104號',
+    phone: '(02) 2951-8999',
+    phoneHref: 'tel:+886229518999',
+    transit: '捷運府中站 3 號出口、板橋站（板南線 1 號出口或環狀線 4 號出口）步行約 10–15 分鐘；搭高鐵或火車可由板橋車站南三門步行前往。',
+    parking: '台灣聯通停車場（府中場）位於同棟大樓地下室，非診所自行營運。周邊另有民權立體停車場、新板特區各場可選擇。',
+    mapQuery: '菡生婦幼診所 新北市板橋區中山路一段104號',
+  },
+  {
+    id: 'youyou',
+    name: '宥宥婦幼診所',
+    address: '新北市蘆洲區長榮路58號（兒童成長發育專科在二樓）',
+    phone: '(02) 8283-9090',
+    phoneHref: 'tel:+886282839090',
+    transit: '捷運蘆洲線三民高中站步行約 5–8 分鐘；亦可搭乘橘 16、橘 17、橘 18 等公車，於長榮中原路口或長榮光明路口下車。',
+    parking: '大樓附設停車場，車位有限，建議提早到達。若遇滿場，可使用周邊路邊停車格或其他附近停車場。',
+    mapQuery: '宥宥婦幼診所 新北市蘆洲區長榮路58號',
+  },
+]
 
 export const directoryItems = [
   { id: 'about', label: '關於如浩醫師', path: '/about' },
@@ -67,6 +91,19 @@ export const aboutStory = [
   '如浩醫師將持續以個人化照護陪伴每個家庭，關注每位孩子的獨特狀況，從成長發育、一般兒科醫學、甚至到青春期的各種困擾。',
   '最重要的是，緩解父母的焦慮，以一顆真誠的心守護孩子自信且健康地茁壯長大。',
 ]
+
+export const aboutOrigin = {
+  title: '網站緣起',
+  lead: '關於這裡：陪伴孩子成長的專屬空間',
+  paragraphs: [
+    '每一次在門診，看著家長們為了孩子的成長發育焦急詢問，我總希望能為大家多做些什麼。',
+    '過去，我在社群平台上分享了許多專業文章，但龐雜的資訊往往隨著時間被淹沒，難以有系統地分類與檢索。因此，我決定打造這個網站，為大家提供一個清晰的知識平台。必須強調的是，這個網站並不能取代看診，因為再豐富的內容，也無法取代身體檢查、骨齡、家族史與過去生長曲線這些寶貴的臨床評估。這裡就像是一座小而美的圖書館，我希望能在其中同時呈現我的專業、真誠與美感。',
+    '有了這個空間，您可以在帶孩子就診前，先對相關觀念有初步的理解，讓看診過程更安心、順利；若是門診中礙於時間，有來不及詳細吸收的細節，您也能隨時回到這裡，依照文章分類，慢慢地將疑惑釐清。',
+    '兒童的成長發育，其實是一個相當廣泛且細緻的領域。有時候，「長不高」、「長太快」的表象下可能暗藏著需要及早介入的疾病；而各種治療手段與療程，更需要建立在深厚的學理基礎與豐富的臨床經驗之上。在這個網站裡，我希望能完整展示兒童內分泌次專科醫師的價值。除了嚴謹的衛教知識，在自費的領域，我也會分享實際的治療案例，讓治療不再是「憑空臆測」，而是帶您深入了解醫師如何透過專業評估與精準治療，來幫助孩子的身高。',
+    '無論您是為了孩子成長而來尋找解答的家長，或是希望與我進行商業合作、專業邀約的夥伴，都期待您能在這裡找到需要的方向與契機。',
+    '歡迎您慢慢探索，讓我們一起為孩子的未來努力。',
+  ],
+}
 
 export const aboutProfile = {
   name: '李如浩醫師',
@@ -538,7 +575,36 @@ export function filterArticles({ dir, sub, articleCat } = {}) {
   })
 }
 
+const heroHeadlines = {
+  cases: '用真實門診情境說清楚',
+  'cases/precocious': '性早熟，不能只看長得快',
+  'cases/rapid': '青春期進展快，剩餘生長空間會被壓縮',
+  'cases/sga': '出生體重過輕，不一定會自己追上',
+  'cases/iss': '找不到病因的矮小，仍需要清楚評估',
+  'bone-age': '找到骨齡背後的問題',
+  'bone-age/meaning': '骨齡快，不代表性早熟',
+  'bone-age/machine': '門診當下完成骨齡評估',
+  'short-stature': '先釐清現在矮不矮、以後可能多高',
+  'short-stature/overview': '從生長曲線讀出身高的下一步',
+  'short-stature/sga': 'SGA 孩子的追趕生長與治療時機',
+  puberty: '青春期太早、太快或太晚，評估方式不同',
+  'puberty/precocious': '性早熟一定會有身體變化',
+  'puberty/rapid': '用幾年骨齡，換到多少身高',
+  'puberty/gender': '青少年性別不安的專科評估',
+  'puberty/delayed': '青春期來得比較晚時，該檢查什麼',
+  gh: '生長激素不是長高保證，而是適應症治療',
+  gnrh: '抑制青春期，是為了爭取更理想的成年身高',
+  nutrition: '成長需要營養，但不需要神秘偏方',
+  'nutrition/diet': '把長高相關的營養問題說清楚',
+  'nutrition/myths': '門診最常被問到的長高迷思',
+}
+
 export function getSectionMeta(view, sub) {
   const key = sub ? `${view}/${sub}` : view
-  return sectionMeta[key] || sectionMeta[view] || { title: '李如浩醫師', intro: '' }
+  const meta = sectionMeta[key] || sectionMeta[view] || { title: '李如浩醫師', intro: '' }
+  return {
+    ...meta,
+    headline: meta.headline || heroHeadlines[key] || heroHeadlines[view] || meta.title,
+    image: meta.image || '',
+  }
 }

@@ -4,8 +4,11 @@ import ColorPalette from './ColorPalette.jsx'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
+  INSTAGRAM_URL,
+  clinicLocations,
   aboutProfile,
   aboutStory,
+  aboutOrigin,
   articleMenu,
   caseMenu,
   casePages,
@@ -75,11 +78,14 @@ function App() {
       const article = getArticle(route.sub)
       return article?.dirs?.[0] || 'about'
     }
+    if (route.view === 'collaborate') return ''
     return directoryItems.some((item) => item.id === route.view) ? route.view : 'about'
   }, [route])
 
   const subItems = secondLevel[activeDir] || []
   const activeSub = route.view === activeDir ? route.sub : null
+  const isTopicPage = directoryItems.some((item) => item.id === route.view && item.id !== 'about')
+  const topicMeta = isTopicPage ? getSectionMeta(route.view, route.sub) : null
 
   return (
     <div className="app">
@@ -89,22 +95,24 @@ function App() {
         openDropdown={openDropdown}
         setOpenDropdown={setOpenDropdown}
         activeDir={activeDir}
+        activeSub={activeSub}
+        activeView={route.view}
       />
       <main className={`page ${route.view === 'about' ? 'page-about' : ''}`}>
-        {route.view !== 'about' && (
-          <header className="page-hero">
-            <p className="page-brand">李如浩醫師</p>
-            <p className="page-english">JU-HAO LEE, MD · 兒童成長發育專科</p>
-          </header>
+        {isTopicPage && (
+          <TopicHero
+            parentLabel={directoryItems.find((item) => item.id === route.view)?.label || topicMeta.title}
+            meta={topicMeta}
+          />
         )}
 
-        {subItems.length > 0 && route.view !== 'about' && route.view !== 'articles' && route.view !== 'article' && (
-          <nav className="subnav" aria-label="第二層目錄">
+        {subItems.length > 0 && isTopicPage && (
+          <nav className="topic-tabs" aria-label="第二層目錄">
             {subItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                className={`subnav-btn ${activeSub === item.id ? 'active' : ''}`}
+                className={`topic-tab ${activeSub === item.id ? 'active' : ''}`}
                 onClick={() => go(item.path)}
               >
                 {item.label}
@@ -124,7 +132,7 @@ function App() {
   )
 }
 
-function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir }) {
+function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -132,6 +140,13 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
 
   const toggleDropdown = (name) => {
     setOpenDropdown((current) => (current === name ? null : name))
@@ -149,35 +164,116 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
         </button>
         <button
           type="button"
-          className="nav-toggle"
-          aria-label="開啟選單"
-          onClick={() => setMenuOpen((open) => !open)}
+          className={`nav-toggle ${menuOpen ? 'open' : ''}`}
+          aria-label={menuOpen ? '關閉選單' : '開啟選單'}
+          aria-expanded={menuOpen}
+          onClick={() => {
+            setMenuOpen((open) => !open)
+            setOpenDropdown(null)
+          }}
         >
           <span />
           <span />
           <span />
         </button>
+        {menuOpen && (
+          <button
+            type="button"
+            className="nav-backdrop"
+            aria-label="關閉選單"
+            onClick={() => {
+              setMenuOpen(false)
+              setOpenDropdown(null)
+            }}
+          />
+        )}
         <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
-          <li
-            className={`has-dropdown ${openDropdown === 'cases' ? 'open' : ''}`}
-            onMouseEnter={() => setOpenDropdown('cases')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <button type="button" className="nav-drop-btn" onClick={() => toggleDropdown('cases')}>
-              真實案例分享
-            </button>
-            <ul className="dropdown">
-              {caseMenu.map((item) => (
-                <li key={item.id}>
-                  <a href={`#${item.path}`} onClick={() => go(item.path)}>{item.label}</a>
+          {directoryItems.map((item) => {
+            const children = secondLevel[item.id]
+
+            if (item.id === 'cases') {
+              return (
+                <li
+                  key={item.id}
+                  className={`has-dropdown ${openDropdown === 'cases' ? 'open' : ''}`}
+                  onMouseEnter={() => { if (!menuOpen) setOpenDropdown('cases') }}
+                  onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
+                >
+                  <a
+                    href={`#${item.path}`}
+                    className={activeDir === item.id ? 'active' : ''}
+                    aria-current={activeDir === item.id ? 'page' : undefined}
+                    onClick={() => go(item.path)}
+                  >
+                    {item.label}
+                  </a>
+                  <ul className="dropdown">
+                    <li>
+                      <span className="dropdown-soon">開發中</span>
+                    </li>
+                  </ul>
                 </li>
-              ))}
-            </ul>
-          </li>
+              )
+            }
+
+            if (children?.length) {
+              return (
+                <li
+                  key={item.id}
+                  className={`has-dropdown ${openDropdown === item.id ? 'open' : ''}`}
+                  onMouseEnter={() => { if (!menuOpen) setOpenDropdown(item.id) }}
+                  onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
+                >
+                  <a
+                    href={`#${item.path}`}
+                    className={activeDir === item.id ? 'active' : ''}
+                    aria-current={activeDir === item.id && !activeSub ? 'page' : undefined}
+                    onClick={(event) => {
+                      if (menuOpen && openDropdown !== item.id) {
+                        event.preventDefault()
+                        toggleDropdown(item.id)
+                        return
+                      }
+                      go(item.path)
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                  <ul className="dropdown">
+                    {children.map((sub) => (
+                      <li key={sub.id}>
+                        <a
+                          href={`#${sub.path}`}
+                          className={activeDir === item.id && activeSub === sub.id ? 'active' : ''}
+                          aria-current={activeDir === item.id && activeSub === sub.id ? 'page' : undefined}
+                          onClick={() => go(sub.path)}
+                        >
+                          {sub.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )
+            }
+
+            return (
+              <li key={item.id}>
+                <a
+                  href={`#${item.path}`}
+                  className={activeDir === item.id ? 'active' : ''}
+                  aria-current={activeDir === item.id ? 'page' : undefined}
+                  onClick={() => go(item.path)}
+                >
+                  {item.label}
+                </a>
+              </li>
+            )
+          })}
           <li
             className={`has-dropdown ${openDropdown === 'articles' ? 'open' : ''}`}
-            onMouseEnter={() => setOpenDropdown('articles')}
-            onMouseLeave={() => setOpenDropdown(null)}
+            onMouseEnter={() => { if (!menuOpen) setOpenDropdown('articles') }}
+            onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
           >
             <button type="button" className="nav-drop-btn" onClick={() => toggleDropdown('articles')}>
               衛教文章
@@ -190,26 +286,61 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
               ))}
             </ul>
           </li>
-          <li>
-            <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="nav-appointment-link">
-              預約掛號
-            </a>
+          <li
+            className={`has-dropdown ${openDropdown === 'contact' ? 'open' : ''}`}
+            onMouseEnter={() => { if (!menuOpen) setOpenDropdown('contact') }}
+            onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
+          >
+            <button
+              type="button"
+              className={`nav-drop-btn nav-appointment-link ${activeView === 'collaborate' ? 'active' : ''}`}
+              onClick={() => toggleDropdown('contact')}
+            >
+              預約或合作
+            </button>
+            <ul className="dropdown dropdown-end">
+              <li>
+                <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer">
+                  預約掛號
+                </a>
+              </li>
+              <li>
+                <a href="#/collaborate" onClick={() => go('/collaborate')}>合作邀約</a>
+              </li>
+            </ul>
           </li>
         </ul>
       </nav>
-      <nav className="directory" aria-label="首頁目錄">
-        {directoryItems.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`dir-btn ${activeDir === item.id ? 'active' : ''}`}
-            onClick={() => go(item.path)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
     </header>
+  )
+}
+
+function TopicHero({ parentLabel, meta }) {
+  const [imgOk, setImgOk] = useState(true)
+
+  useEffect(() => {
+    setImgOk(true)
+  }, [meta.image])
+
+  return (
+    <section className="topic-hero">
+      <div className="container">
+        <h1 className="topic-hero-title">{parentLabel}</h1>
+        <div className="topic-hero-grid">
+          <div className="topic-hero-visual">
+            {meta.image && imgOk ? (
+              <img src={meta.image} alt="" onError={() => setImgOk(false)} />
+            ) : (
+              <div className="topic-hero-placeholder" aria-hidden="true" />
+            )}
+          </div>
+          <div className="topic-hero-copy">
+            <h2>{meta.headline}</h2>
+            {meta.intro && <p>{meta.intro}</p>}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -233,6 +364,9 @@ function PageBody({ route }) {
   if (route.view === 'about' || !route.view) {
     return <AboutPage />
   }
+  if (route.view === 'collaborate') {
+    return <CollaboratePage />
+  }
   if (route.view === 'cases') {
     return <CasePage sub={route.sub} />
   }
@@ -243,9 +377,11 @@ function PageBody({ route }) {
   const list = filterArticles(sub ? { dir, sub } : { dir })
 
   return (
-    <SectionFrame title={meta.title} intro={meta.intro}>
-      <ArticleGrid items={list} emptyText="此分類文章將陸續補充。歡迎先閱讀相關主題，或預約門診個別討論。" />
-    </SectionFrame>
+    <section className="content-section topic-list">
+      <div className="container">
+        <ArticleGrid items={list} emptyText="此分類文章將陸續補充。歡迎先閱讀相關主題，或預約門診個別討論。" />
+      </div>
+    </section>
   )
 }
 
@@ -312,29 +448,48 @@ function AboutPage() {
         </div>
       </section>
 
-      <section className="block-beige">
-        <div className="container about-lower">
-          <div className="specialty-col">
-            <h2 className="block-title">專長與服務項目</h2>
-            <p className="block-kicker">SPECIALTIES & SERVICES</p>
-            <div className="specialty-list">
-              {specialties.map((item) => (
-                <button key={item.id} type="button" className="specialty-row" onClick={() => go(item.path)}>
-                  <strong>{item.title}</strong>
-                  <span>{item.detail}</span>
-                  <i aria-hidden="true">→</i>
-                </button>
-              ))}
+      <section className="block-beige cv-band">
+        <div className="container">
+          <div className="cv-panel">
+            <div className="cv-copy">
+              <h2 className="block-title cv-heading">醫師簡介與經歷</h2>
+              <p className="block-kicker">CURRICULUM VITAE</p>
+              <p className="cv-name">{aboutProfile.name} <span>{aboutProfile.english}</span></p>
+              <CvBlock title="現職" items={aboutProfile.current} />
+              <CvBlock title="學經歷與專業認證" items={[...aboutProfile.education, ...aboutProfile.licenses, ...aboutProfile.teaching]} />
             </div>
+            <aside className="cv-certs" aria-label="專業證書預留區">
+              <div className="cert-slot" />
+              <div className="cert-slot" />
+            </aside>
           </div>
+        </div>
+      </section>
 
-          <aside className="cv-card">
-            <h2 className="block-title">醫師簡介與經歷</h2>
-            <p className="block-kicker">CURRICULUM VITAE</p>
-            <p className="cv-name">{aboutProfile.name} <span>{aboutProfile.english}</span></p>
-            <CvBlock title="現職" items={aboutProfile.current} />
-            <CvBlock title="學經歷與專業認證" items={[...aboutProfile.education, ...aboutProfile.licenses, ...aboutProfile.teaching]} />
-          </aside>
+      <section className="block-white specialty-band">
+        <div className="container">
+          <h2 className="block-title">專長與服務項目</h2>
+          <p className="block-kicker">SPECIALTIES & SERVICES</p>
+          <div className="specialty-list">
+            {specialties.map((item) => (
+              <button key={item.id} type="button" className="specialty-row" onClick={() => go(item.path)}>
+                <strong>{item.title}</strong>
+                <span>{item.detail}</span>
+                <i aria-hidden="true">→</i>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="block-beige origin-band">
+        <div className="container origin-copy">
+          <h2 className="block-title">{aboutOrigin.title}</h2>
+          <p className="block-kicker">ORIGIN</p>
+          <p className="origin-lead">{aboutOrigin.lead}</p>
+          {aboutOrigin.paragraphs.map((paragraph) => (
+            <p key={paragraph.slice(0, 24)}>{goldText(paragraph)}</p>
+          ))}
         </div>
       </section>
     </>
@@ -362,26 +517,19 @@ function CasePage({ sub }) {
   const unique = related.filter((item, index, arr) => arr.findIndex((row) => row.id === item.id) === index)
 
   return (
-    <SectionFrame title={meta.title} intro={meta.intro}>
-      <div className="empty-note">
-        <p>個案圖文整理中。以下先提供相關衛教，方便家長對照閱讀；正式案例刊出後會更新於此。</p>
-      </div>
-      {!sub && (
-        <div className="case-links">
-          {caseMenu.map((item) => (
-            <button key={item.id} type="button" className="case-link-btn" onClick={() => go(item.path)}>
-              {item.label}
-            </button>
-          ))}
+    <section className="content-section topic-list">
+      <div className="container">
+        <div className="empty-note">
+          <p>個案圖文整理中。以下先提供相關衛教，方便家長對照閱讀；正式案例刊出後會更新於此。</p>
         </div>
-      )}
-      {unique.length > 0 && (
-        <>
-          <h3 className="subsection-title">相關衛教</h3>
-          <ArticleGrid items={unique} />
-        </>
-      )}
-    </SectionFrame>
+        {unique.length > 0 && (
+          <>
+            <h3 className="subsection-title">相關衛教</h3>
+            <ArticleGrid items={unique} />
+          </>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -528,11 +676,82 @@ function ClinicHours() {
             ))}
           </ul>
         </div>
+        <div className="visit-list">
+          {clinicLocations.map((clinic) => (
+            <article key={clinic.id} className="visit-card">
+              <div className="visit-map">
+                <iframe
+                  title={`${clinic.name}地圖`}
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(clinic.mapQuery)}&hl=zh-TW&z=16&output=embed`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <div className="visit-info">
+                <h3>{clinic.name}</h3>
+                <dl>
+                  <div>
+                    <dt>地址</dt>
+                    <dd>{clinic.address}</dd>
+                  </div>
+                  <div>
+                    <dt>電話</dt>
+                    <dd><a href={clinic.phoneHref}>{clinic.phone}</a></dd>
+                  </div>
+                  <div>
+                    <dt>大眾交通</dt>
+                    <dd>{clinic.transit}</dd>
+                  </div>
+                  <div>
+                    <dt>停車</dt>
+                    <dd>{clinic.parking}</dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+          ))}
+        </div>
         <div className="clinic-cta">
+          <p className="clinic-cta-note">請至預約頁自行選擇菡生或宥宥診次</p>
           <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
             線上預約掛號
           </a>
         </div>
+      </div>
+    </section>
+  )
+}
+
+function CollaboratePage() {
+  const onSubmit = (event) => {
+    event.preventDefault()
+  }
+
+  return (
+    <section className="collaborate-section">
+      <div className="container collaborate-wrap">
+        <h1 className="collaborate-title">代言或演講合作邀約</h1>
+        <form className="collaborate-form" onSubmit={onSubmit}>
+          <div className="collaborate-grid">
+            <label className="collaborate-field">
+              <span>Name: <i>*</i></span>
+              <input type="text" name="name" required autoComplete="name" />
+            </label>
+            <label className="collaborate-field">
+              <span>Email: <i>*</i></span>
+              <input type="email" name="email" required autoComplete="email" />
+            </label>
+            <label className="collaborate-field">
+              <span>Phone:</span>
+              <input type="tel" name="phone" autoComplete="tel" />
+            </label>
+            <label className="collaborate-field collaborate-message">
+              <span>Message: <i>*</i></span>
+              <textarea name="message" rows="8" required />
+            </label>
+          </div>
+          <button type="submit" className="collaborate-submit">發送郵件</button>
+        </form>
       </div>
     </section>
   )
@@ -545,26 +764,28 @@ function Footer() {
         <div className="footer-content">
           <div className="footer-section">
             <img className="footer-logo" src={logoSrc} alt="如浩醫師" />
-            <h3>李如浩醫師</h3>
-            <p>兒童成長發育專科 · 小兒內分泌</p>
-            <p>菡生婦幼診所 · 宥宥婦幼診所</p>
+            <p className="footer-copy">© {new Date().getFullYear()} 李如浩醫師</p>
+            <p className="footer-legal">
+              【版權聲明與警告】本站全數衛教文章與案例皆為醫師原創，並留存最初發布之時間紀錄。嚴禁任何未經同意之轉載、抄襲或改寫。任何侵權行為，一經發現必由法律途徑追究到底。
+            </p>
           </div>
           <div className="footer-section">
             <h4>快速連結</h4>
             <ul>
-              <li><a href="#/about">關於如浩醫師</a></li>
-              <li><a href="#/cases">真實案例</a></li>
-              <li><a href="#/articles/latest">衛教文章</a></li>
               <li>
-                <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer">Facebook 專頁</a>
+                <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer">Facebook</a>
               </li>
+              <li>
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>
+              </li>
+              <li><a href="#/collaborate">合作邀約</a></li>
             </ul>
           </div>
           <div className="footer-section">
-            <h4>菡生婦幼診所</h4>
+            <h4>看診據點</h4>
             <ul>
-              <li>新北市板橋區中山路一段104號</li>
-              <li>電話 02-29518999</li>
+              <li>菡生婦幼診所 · 板橋區中山路一段104號</li>
+              <li>宥宥婦幼診所 · 蘆洲區長榮路58號</li>
               <li>
                 <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer">線上預約掛號</a>
               </li>
