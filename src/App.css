@@ -54,16 +54,16 @@
 
 .logo-en {
   color: var(--bar-muted);
-  font-size: 0.68rem;
+  font-size: var(--type-logoEn-size, 0.68rem);
   letter-spacing: 0.18em;
-  font-weight: 400;
-  font-family: var(--font-hand);
+  font-weight: var(--type-logoEn-weight, 400);
+  font-family: var(--type-logoEn-family, var(--font-hand));
 }
 
 .logo-text {
-  font-size: 1.02rem;
-  font-weight: 400;
-  font-family: var(--font-hand);
+  font-size: var(--type-logoZh-size, 1.02rem);
+  font-weight: var(--type-logoZh-weight, 400);
+  font-family: var(--type-logoZh-family, var(--font-hand));
   color: var(--bar-fg);
   background: none;
   -webkit-text-fill-color: var(--bar-fg);
@@ -88,8 +88,9 @@
   text-decoration: none;
   transition: color 0.2s ease, opacity 0.2s ease;
   position: relative;
-  font-weight: 400;
-  font-size: 0.82rem;
+  font-weight: var(--type-nav-weight, 400);
+  font-size: var(--type-nav-size, 0.82rem);
+  font-family: var(--type-nav-family, var(--font-sans));
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -152,11 +153,11 @@
   background: none;
   border: none;
   color: var(--bar-fg);
-  font-size: 0.82rem;
-  font-weight: 400;
+  font-size: var(--type-nav-size, 0.82rem);
+  font-weight: var(--type-nav-weight, 400);
   letter-spacing: 0.04em;
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--type-nav-family, inherit);
   white-space: nowrap;
   padding: 0;
 }
@@ -267,10 +268,10 @@
 
 .topic-hero-title {
   text-align: center;
-  font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 3.4vw, 2.45rem);
+  font-family: var(--type-topicTitle-family, var(--font-serif));
+  font-size: var(--type-topicTitle-size, clamp(1.8rem, 3.4vw, 2.45rem));
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--type-topicTitle-weight, 600);
   letter-spacing: 0.04em;
   margin-bottom: 1.7rem;
 }
@@ -306,17 +307,19 @@
 }
 
 .topic-hero-copy h2 {
-  font-family: var(--font-serif);
-  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  font-family: var(--type-topicHeadline-family, var(--font-serif));
+  font-size: var(--type-topicHeadline-size, clamp(1.35rem, 2.4vw, 1.7rem));
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--type-topicHeadline-weight, 600);
   line-height: 1.4;
   margin-bottom: 1rem;
 }
 
 .topic-hero-copy p {
   color: var(--ink-soft);
-  font-size: 1.02rem;
+  font-size: var(--type-topicCopy-size, 1.02rem);
+  font-weight: var(--type-topicCopy-weight, 400);
+  font-family: var(--type-topicCopy-family, var(--font-sans));
   line-height: 1.9;
 }
 
@@ -336,8 +339,9 @@
   border-bottom: 3px solid transparent;
   padding: 0.55rem 0.15rem 0.8rem;
   color: var(--text-muted);
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: var(--type-topicTab-size, 1rem);
+  font-weight: var(--type-topicTab-weight, 500);
+  font-family: var(--type-topicTab-family, inherit);
   cursor: pointer;
 }
 
@@ -377,14 +381,17 @@
 
 .about-eyebrow {
   color: var(--gold);
-  font-size: 0.86rem;
+  font-size: var(--type-aboutEyebrow-size, 0.86rem);
   letter-spacing: 0.14em;
   margin-bottom: 0.85rem;
-  font-family: var(--font-hand);
+  font-family: var(--type-aboutEyebrow-family, var(--font-hand));
+  font-weight: var(--type-aboutEyebrow-weight, 400);
 }
 
 .about-brand {
-  font-size: clamp(2.2rem, 5vw, 3.35rem);
+  font-size: var(--type-aboutName-size, clamp(2.2rem, 5vw, 3.35rem));
+  font-family: var(--type-aboutName-family, var(--font-serif));
+  font-weight: var(--type-aboutName-weight, 600);
   line-height: 1.15;
   color: var(--ink);
   margin-bottom: 0.35rem;
@@ -394,14 +401,18 @@
 .about-brand-en {
   letter-spacing: 0.18em;
   color: var(--text-muted);
-  font-size: 0.86rem;
+  font-size: var(--type-aboutEn-size, 0.86rem);
+  font-family: var(--type-aboutEn-family, var(--font-sans));
+  font-weight: var(--type-aboutEn-weight, 400);
   margin-bottom: 1.1rem;
 }
 
 .about-lead {
   max-width: 34rem;
   color: var(--ink-soft);
-  font-size: 1.05rem;
+  font-size: var(--type-aboutLead-size, 1.05rem);
+  font-family: var(--type-aboutLead-family, var(--font-sans));
+  font-weight: var(--type-aboutLead-weight, 400);
   line-height: 1.85;
   margin-bottom: 1.5rem;
 }
@@ -512,18 +523,20 @@
 }
 
 .block-title {
-  font-size: 1.4rem;
+  font-size: var(--type-blockTitle-size, 1.4rem);
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--type-blockTitle-weight, 600);
+  font-family: var(--type-blockTitle-family, var(--font-serif));
   margin-bottom: 0.2rem;
 }
 
 .block-kicker {
   color: var(--text-muted);
   letter-spacing: 0.18em;
-  font-size: 0.74rem;
+  font-size: var(--type-blockKicker-size, 0.74rem);
+  font-weight: var(--type-blockKicker-weight, 400);
   margin-bottom: 1.4rem;
-  font-family: var(--font-sans);
+  font-family: var(--type-blockKicker-family, var(--font-sans));
 }
 
 .gold-quote {
@@ -542,8 +555,9 @@
   color: var(--ink-soft);
   margin-bottom: 1.15rem;
   line-height: 2;
-  font-size: 1.04rem;
-  font-family: var(--font-serif);
+  font-size: var(--type-story-size, 1.04rem);
+  font-weight: var(--type-story-weight, 400);
+  font-family: var(--type-story-family, var(--font-serif));
 }
 
 .about-portrait {
@@ -650,8 +664,9 @@
 }
 
 .origin-copy .origin-lead {
-  font-family: var(--font-serif);
-  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+  font-family: var(--type-originLead-family, var(--font-serif));
+  font-size: var(--type-originLead-size, clamp(1.2rem, 2.2vw, 1.45rem));
+  font-weight: var(--type-originLead-weight, 400);
   color: var(--ink);
   line-height: 1.7;
   margin-bottom: 1.6rem;
@@ -661,8 +676,9 @@
   color: var(--ink-soft);
   margin-bottom: 1.15rem;
   line-height: 2;
-  font-size: 1.04rem;
-  font-family: var(--font-serif);
+  font-size: var(--type-originBody-size, 1.04rem);
+  font-weight: var(--type-originBody-weight, 400);
+  font-family: var(--type-originBody-family, var(--font-serif));
 }
 
 .specialty-list {
@@ -692,14 +708,16 @@
 
 .specialty-row strong {
   color: var(--ink);
-  font-size: 1.05rem;
-  font-family: var(--font-serif);
-  font-weight: 600;
+  font-size: var(--type-specTitle-size, 1.05rem);
+  font-family: var(--type-specTitle-family, var(--font-serif));
+  font-weight: var(--type-specTitle-weight, 600);
 }
 
 .specialty-row span {
   color: var(--text-muted);
-  font-size: 0.98rem;
+  font-size: var(--type-specDetail-size, 0.98rem);
+  font-weight: var(--type-specDetail-weight, 400);
+  font-family: var(--type-specDetail-family, var(--font-sans));
   line-height: 1.6;
 }
 
@@ -710,8 +728,9 @@
 }
 
 .cv-name {
-  font-size: clamp(1.28rem, 2.2vw, 1.55rem);
-  font-weight: 700;
+  font-size: var(--type-cvName-size, clamp(1.28rem, 2.2vw, 1.55rem));
+  font-weight: var(--type-cvName-weight, 700);
+  font-family: var(--type-cvName-family, var(--font-serif));
   margin-bottom: 1.55rem;
   color: var(--ink);
   line-height: 1.35;
@@ -738,7 +757,9 @@
 .cv-block h3 {
   color: var(--gold);
   margin-bottom: 0.8rem;
-  font-size: 1.08rem;
+  font-size: var(--type-cvHead-size, 1.08rem);
+  font-weight: var(--type-cvHead-weight, 600);
+  font-family: var(--type-cvHead-family, var(--font-sans));
   padding-left: 0.75rem;
   border-left: 3px solid var(--gold);
 }
@@ -751,7 +772,9 @@
   color: var(--ink-soft);
   padding: 0.38rem 0 0.38rem 0.75rem;
   line-height: 1.85;
-  font-size: 1.05rem;
+  font-size: var(--type-cvItem-size, 1.05rem);
+  font-weight: var(--type-cvItem-weight, 400);
+  font-family: var(--type-cvItem-family, var(--font-sans));
   position: static;
 }
 
@@ -1239,9 +1262,9 @@
 }
 
 .article-card-title {
-  font-size: 1.28rem;
-  font-weight: 600;
-  font-family: var(--font-serif);
+  font-size: var(--type-articleTitle-size, 1.28rem);
+  font-weight: var(--type-articleTitle-weight, 600);
+  font-family: var(--type-articleTitle-family, var(--font-serif));
   color: var(--text-primary);
   margin-bottom: 0.55rem;
   line-height: 1.45;
@@ -1251,6 +1274,9 @@
   color: var(--text-muted);
   line-height: 1.7;
   margin-bottom: 0.7rem;
+  font-size: var(--type-articleExcerpt-size, 1rem);
+  font-weight: var(--type-articleExcerpt-weight, 400);
+  font-family: var(--type-articleExcerpt-family, var(--font-sans));
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1528,17 +1554,20 @@
 
 .clinic-title {
   text-align: center;
-  font-size: 1.65rem;
+  font-size: var(--type-clinicTitle-size, 1.65rem);
+  font-family: var(--type-clinicTitle-family, var(--font-serif));
   color: var(--ink);
   margin-bottom: 0.45rem;
-  font-weight: 600;
+  font-weight: var(--type-clinicTitle-weight, 600);
 }
 
 .clinic-lead {
   text-align: center;
   color: var(--text-muted);
   margin-bottom: 1.4rem;
-  font-size: 0.92rem;
+  font-size: var(--type-clinicLead-size, 0.92rem);
+  font-weight: var(--type-clinicLead-weight, 400);
+  font-family: var(--type-clinicLead-family, var(--font-sans));
 }
 
 .schedule-board {
@@ -1676,7 +1705,9 @@
 }
 
 .visit-info h3 {
-  font-size: 1.35rem;
+  font-size: var(--type-visitName-size, 1.35rem);
+  font-weight: var(--type-visitName-weight, 600);
+  font-family: var(--type-visitName-family, var(--font-serif));
   margin-bottom: 1.1rem;
   color: var(--bar-fg);
 }
@@ -1696,7 +1727,9 @@
 .visit-info dd {
   color: var(--bar-fg);
   line-height: 1.7;
-  font-size: 0.95rem;
+  font-size: var(--type-visitBody-size, 0.95rem);
+  font-weight: var(--type-visitBody-weight, 400);
+  font-family: var(--type-visitBody-family, var(--font-sans));
 }
 
 .visit-info a {
@@ -1855,7 +1888,9 @@
 
 .footer-legal {
   color: var(--gold-soft);
-  font-size: 0.84rem;
+  font-size: var(--type-footer-size, 0.84rem);
+  font-weight: var(--type-footer-weight, 400);
+  font-family: var(--type-footer-family, var(--font-sans));
   line-height: 1.8;
   max-width: 28rem;
 }

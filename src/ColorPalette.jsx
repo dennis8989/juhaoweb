@@ -91,25 +91,7 @@ function loadTheme() {
 
 applyTheme(loadTheme())
 
-function themeEditorEnabled() {
-  try {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('theme') === '1') {
-      localStorage.setItem('juhao-theme-editor', '1')
-      return true
-    }
-    if (params.get('theme') === '0') {
-      localStorage.removeItem('juhao-theme-editor')
-      return false
-    }
-    return localStorage.getItem('juhao-theme-editor') === '1'
-  } catch {
-    return false
-  }
-}
-
 export default function ColorPalette() {
-  const [enabled] = useState(themeEditorEnabled)
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useState(loadTheme)
   const [barText, setBarText] = useState(theme.bar)
@@ -121,8 +103,6 @@ export default function ColorPalette() {
     setBarText(theme.bar)
     setContentText(theme.content)
   }, [theme])
-
-  if (!enabled) return null
 
   const apply = (next) => {
     setTheme(next)
@@ -179,7 +159,7 @@ export default function ColorPalette() {
         <button type="button" className="color-reset" onClick={() => apply({ ...DEFAULT_THEME })}>
           還原預設
         </button>
-        <p className="color-hint">正式站預設隱藏。網址加 ?theme=1 可開啟調色；?theme=0 關閉。</p>
+        <p className="color-hint">用右下角開關可關閉整個設計工具。</p>
       </div>
     </aside>
   )

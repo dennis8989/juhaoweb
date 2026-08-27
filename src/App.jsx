@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-import ColorPalette from './ColorPalette.jsx'
+import DesignTools from './DesignToggle.jsx'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
@@ -127,7 +127,7 @@ function App() {
       </main>
       <ClinicHours />
       <Footer />
-      <ColorPalette />
+      <DesignTools />
     </div>
   )
 }
