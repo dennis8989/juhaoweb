@@ -97,6 +97,7 @@ function App() {
         activeDir={activeDir}
         activeSub={activeSub}
         activeView={route.view}
+        heroSurface={route.view === 'about'}
       />
       <main className={`page ${route.view === 'about' ? 'page-about' : ''}`}>
         {isTopicPage && (
@@ -132,7 +133,7 @@ function App() {
   )
 }
 
-function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView }) {
+function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView, heroSurface }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -153,7 +154,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
   }
 
   return (
-    <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+    <header className={`navbar ${heroSurface ? 'navbar-hero' : ''} ${scrolled ? 'scrolled' : ''}`}>
       <nav className="nav-container">
         <button type="button" className="logo" onClick={() => go('/about')}>
           <img className="logo-mark" src={logoSrc} alt="如浩醫師" />
@@ -270,22 +271,6 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
               </li>
             )
           })}
-          <li
-            className={`has-dropdown ${openDropdown === 'articles' ? 'open' : ''}`}
-            onMouseEnter={() => { if (!menuOpen) setOpenDropdown('articles') }}
-            onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
-          >
-            <button type="button" className="nav-drop-btn" onClick={() => toggleDropdown('articles')}>
-              衛教文章
-            </button>
-            <ul className="dropdown">
-              {articleMenu.map((item) => (
-                <li key={item.id}>
-                  <a href={`#${item.path}`} onClick={() => go(item.path)}>{item.label}</a>
-                </li>
-              ))}
-            </ul>
-          </li>
           <li
             className={`has-dropdown ${openDropdown === 'contact' ? 'open' : ''}`}
             onMouseEnter={() => { if (!menuOpen) setOpenDropdown('contact') }}
@@ -409,14 +394,14 @@ function goldText(text) {
 function AboutPage() {
   return (
     <>
-      <section className="about-intro">
+      <section className="about-intro warm-hero-surface">
         <div className="container about-intro-inner">
           <div className="about-intro-copy">
             <p className="about-eyebrow">兒童成長發育專科 · 小兒內分泌</p>
             <h1 className="about-brand">{aboutProfile.name}</h1>
             <p className="about-brand-en">{aboutProfile.english}</p>
             <p className="about-lead">
-              以醫學實證與臨床經驗為本，陪伴孩子的身高、骨齡、性早熟、青春期與生長激素治療。
+              具台大兒童內分泌科完整訓練、兒童內分泌次專科證照，以及多年醫學中心主治歷練與豐富自費治療經驗；提供健康至疾病的兒童成長全光譜照護，陪伴孩子走好成長每一步。
             </p>
             <div className="about-actions">
               <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">

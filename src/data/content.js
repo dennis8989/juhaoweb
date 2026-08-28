@@ -26,7 +26,7 @@ export const clinicLocations = [
 ]
 
 export const directoryItems = [
-  { id: 'about', label: '關於如浩醫師', path: '/about' },
+  { id: 'about', label: '關於我', path: '/about' },
   { id: 'cases', label: '真實案例', path: '/cases' },
   { id: 'bone-age', label: '骨齡檢測', path: '/bone-age' },
   { id: 'short-stature', label: '身材矮小或落後', path: '/short-stature' },
