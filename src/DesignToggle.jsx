@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ColorPalette from './ColorPalette.jsx'
 import TypeEditor from './TypeEditor.jsx'
+import DesignExport from './DesignExport.jsx'
 
 const STORAGE_KEY = 'juhao-design-tools'
 
@@ -34,6 +35,7 @@ export default function DesignTools() {
       </button>
       {on && (
         <>
+          <DesignExport />
           <ColorPalette />
           <TypeEditor />
         </>

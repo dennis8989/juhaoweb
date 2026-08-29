@@ -21,6 +21,7 @@ import {
 } from './data/content.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
+const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#/, '')
@@ -97,12 +98,11 @@ function App() {
         activeDir={activeDir}
         activeSub={activeSub}
         activeView={route.view}
-        heroSurface={route.view === 'about'}
       />
       <main className={`page ${route.view === 'about' ? 'page-about' : ''}`}>
         {isTopicPage && (
           <TopicHero
-            parentLabel={directoryItems.find((item) => item.id === route.view)?.label || topicMeta.title}
+            title={topicMeta.title}
             meta={topicMeta}
           />
         )}
@@ -133,7 +133,7 @@ function App() {
   )
 }
 
-function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView, heroSurface }) {
+function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -154,7 +154,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
   }
 
   return (
-    <header className={`navbar ${heroSurface ? 'navbar-hero' : ''} ${scrolled ? 'scrolled' : ''}`}>
+    <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <nav className="nav-container">
         <button type="button" className="logo" onClick={() => go('/about')}>
           <img className="logo-mark" src={logoSrc} alt="如浩醫師" />
@@ -300,7 +300,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
   )
 }
 
-function TopicHero({ parentLabel, meta }) {
+function TopicHero({ title, meta }) {
   const [imgOk, setImgOk] = useState(true)
 
   useEffect(() => {
@@ -310,7 +310,7 @@ function TopicHero({ parentLabel, meta }) {
   return (
     <section className="topic-hero">
       <div className="container">
-        <h1 className="topic-hero-title">{parentLabel}</h1>
+        <h1 className="topic-hero-title">{title}</h1>
         <div className="topic-hero-grid">
           <div className="topic-hero-visual">
             {meta.image && imgOk ? (
@@ -382,13 +382,14 @@ function SectionFrame({ title, intro, children }) {
   )
 }
 
-function goldText(text) {
-  const parts = text.split(/(「[^」]+」)/g)
-  return parts.map((part, index) => (
-    part.startsWith('「')
-      ? <em key={index} className="gold-quote">{part}</em>
-      : <span key={index}>{part}</span>
-  ))
+function storyText(text) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>
+    }
+    return <span key={index}>{part}</span>
+  })
 }
 
 function AboutPage() {
@@ -412,10 +413,7 @@ function AboutPage() {
           </div>
           <aside className="about-portrait">
             <div className="portrait-frame">
-              <img className="portrait-mark" src={logoSrc} alt="" />
-              <h2>{aboutProfile.name}</h2>
-              <p className="about-card-en">{aboutProfile.english}</p>
-              <p className="portrait-role">兒童成長發育專科</p>
+              <img className="portrait-photo" src={doctorSrc} alt={aboutProfile.name} />
             </div>
           </aside>
         </div>
@@ -426,8 +424,15 @@ function AboutPage() {
           <div className="about-story">
             <h2 className="block-title">醫師理念</h2>
             <p className="block-kicker">APPROACH</p>
-            {aboutStory.map((paragraph) => (
-              <p key={paragraph.slice(0, 24)}>{goldText(paragraph)}</p>
+            {aboutStory.map((block, blockIndex) => (
+              <p key={blockIndex} className="about-story-block">
+                {block.lines.map((line, lineIndex) => (
+                  <span key={lineIndex} className="about-story-line">
+                    {lineIndex > 0 && <br />}
+                    {storyText(line)}
+                  </span>
+                ))}
+              </p>
             ))}
           </div>
         </div>
@@ -443,9 +448,23 @@ function AboutPage() {
               <CvBlock title="現職" items={aboutProfile.current} />
               <CvBlock title="學經歷與專業認證" items={[...aboutProfile.education, ...aboutProfile.licenses, ...aboutProfile.teaching]} />
             </div>
-            <aside className="cv-certs" aria-label="專業證書預留區">
-              <div className="cert-slot" />
-              <div className="cert-slot" />
+            <aside className="cv-certs" aria-label="專業證書">
+              <figure className="cert-card">
+                <img
+                  src="/certs/pediatric-endo.png"
+                  alt="兒科內分泌學次專科醫師證書"
+                  loading="lazy"
+                />
+                <figcaption>兒科內分泌學次專科</figcaption>
+              </figure>
+              <figure className="cert-card">
+                <img
+                  src="/certs/endo-metabolism.png"
+                  alt="中華民國內分泌暨新陳代謝科專科醫師證書"
+                  loading="lazy"
+                />
+                <figcaption>內分泌暨新陳代謝專科</figcaption>
+              </figure>
             </aside>
           </div>
         </div>
@@ -457,11 +476,10 @@ function AboutPage() {
           <p className="block-kicker">SPECIALTIES & SERVICES</p>
           <div className="specialty-list">
             {specialties.map((item) => (
-              <button key={item.id} type="button" className="specialty-row" onClick={() => go(item.path)}>
+              <div key={item.id} className="specialty-row">
                 <strong>{item.title}</strong>
                 <span>{item.detail}</span>
-                <i aria-hidden="true">→</i>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -471,9 +489,11 @@ function AboutPage() {
         <div className="container origin-copy">
           <h2 className="block-title">{aboutOrigin.title}</h2>
           <p className="block-kicker">ORIGIN</p>
-          <p className="origin-lead">{aboutOrigin.lead}</p>
-          {aboutOrigin.paragraphs.map((paragraph) => (
-            <p key={paragraph.slice(0, 24)}>{goldText(paragraph)}</p>
+          <p className="origin-lead"><strong>{aboutOrigin.lead}</strong></p>
+          {aboutOrigin.blocks.map((block, index) => (
+            block.divider
+              ? <hr key={`divider-${index}`} className="origin-divider" />
+              : <p key={index} className="origin-body">{storyText(block.text)}</p>
           ))}
         </div>
       </section>
@@ -486,9 +506,15 @@ function CvBlock({ title, items }) {
     <div className="cv-block">
       <h3>{title}</h3>
       <ul>
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
+        {items.map((item) => {
+          const text = typeof item === 'string' ? item : item.text
+          const highlight = typeof item === 'object' && item.highlight
+          return (
+            <li key={text} className={highlight ? 'cv-highlight' : undefined}>
+              {highlight ? <strong>{text}</strong> : text}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
