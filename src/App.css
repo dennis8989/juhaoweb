@@ -592,9 +592,9 @@
   color: var(--ink-soft);
   margin-bottom: 1.15rem;
   line-height: 2;
-  font-size: var(--type-story-size, 1.04rem);
-  font-weight: var(--type-story-weight, 400);
-  font-family: var(--type-story-family, var(--font-serif));
+  font-size: var(--type-sectionBody-size, 1.04rem);
+  font-weight: var(--type-sectionBody-weight, 400);
+  font-family: var(--type-sectionBody-family, var(--font-serif));
 }
 
 .about-portrait {
@@ -659,11 +659,6 @@
   align-items: stretch;
 }
 
-.cv-heading {
-  font-size: clamp(1.7rem, 3vw, 2.15rem);
-  margin-bottom: 0.35rem;
-}
-
 .cv-copy .block-kicker {
   margin-bottom: 1.7rem;
 }
@@ -701,9 +696,9 @@
 }
 
 .origin-copy .origin-lead {
-  font-family: var(--type-originLead-family, var(--font-serif));
-  font-size: var(--type-originLead-size, clamp(1.2rem, 2.2vw, 1.45rem));
-  font-weight: var(--type-originLead-weight, 400);
+  font-family: var(--type-sectionBody-family, var(--font-serif));
+  font-size: calc(var(--type-sectionBody-size, 17px) * 1.15);
+  font-weight: var(--type-sectionBody-weight, 400);
   color: var(--ink);
   line-height: 1.7;
   margin-bottom: 1.6rem;
@@ -713,9 +708,9 @@
   color: var(--ink-soft);
   margin-bottom: 1.15rem;
   line-height: 2;
-  font-size: var(--type-originBody-size, 1.04rem);
-  font-weight: var(--type-originBody-weight, 400);
-  font-family: var(--type-originBody-family, var(--font-serif));
+  font-size: var(--type-sectionBody-size, 1.04rem);
+  font-weight: var(--type-sectionBody-weight, 400);
+  font-family: var(--type-sectionBody-family, var(--font-serif));
 }
 
 .specialty-list {
@@ -752,9 +747,9 @@
 
 .specialty-row span {
   color: var(--text-muted);
-  font-size: var(--type-specDetail-size, 0.98rem);
-  font-weight: var(--type-specDetail-weight, 400);
-  font-family: var(--type-specDetail-family, var(--font-sans));
+  font-size: var(--type-sectionBody-size, 0.98rem);
+  font-weight: var(--type-sectionBody-weight, 400);
+  font-family: var(--type-sectionBody-family, var(--font-serif));
   line-height: 1.6;
 }
 
@@ -809,9 +804,9 @@
   color: var(--ink-soft);
   padding: 0.38rem 0 0.38rem 0.75rem;
   line-height: 1.85;
-  font-size: var(--type-cvItem-size, 1.05rem);
-  font-weight: var(--type-cvItem-weight, 400);
-  font-family: var(--type-cvItem-family, var(--font-sans));
+  font-size: var(--type-sectionBody-size, 1.05rem);
+  font-weight: var(--type-sectionBody-weight, 400);
+  font-family: var(--type-sectionBody-family, var(--font-serif));
   position: static;
 }
 

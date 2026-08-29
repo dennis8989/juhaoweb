@@ -17,14 +17,15 @@ export const TYPE_ROLES = [
   { id: 'aboutLead', label: '關於頁導言', selector: '.about-lead', defaults: { family: 'sans', weight: '400', size: 17 } },
   { id: 'blockTitle', label: '區塊標題', selector: '.block-title', defaults: { family: 'serif', weight: '600', size: 22 } },
   { id: 'blockKicker', label: '區塊英文標', selector: '.block-kicker', defaults: { family: 'sans', weight: '400', size: 12 } },
-  { id: 'story', label: '醫師理念內文', selector: '.about-story p', defaults: { family: 'serif', weight: '400', size: 17 } },
+  {
+    id: 'sectionBody',
+    label: '區塊內文',
+    selector: '.about-story p, .cv-block li, .specialty-row span, .origin-copy .origin-lead, .origin-copy > p:not(.block-kicker):not(.origin-lead)',
+    defaults: { family: 'serif', weight: '400', size: 17 },
+  },
   { id: 'cvName', label: '履歷姓名', selector: '.cv-name', defaults: { family: 'serif', weight: '700', size: 23 } },
   { id: 'cvHead', label: '履歷小標', selector: '.cv-block h3', defaults: { family: 'sans', weight: '600', size: 17 } },
-  { id: 'cvItem', label: '履歷條目', selector: '.cv-block li', defaults: { family: 'sans', weight: '400', size: 17 } },
   { id: 'specTitle', label: '專長標題', selector: '.specialty-row strong', defaults: { family: 'serif', weight: '600', size: 17 } },
-  { id: 'specDetail', label: '專長說明', selector: '.specialty-row span', defaults: { family: 'sans', weight: '400', size: 16 } },
-  { id: 'originLead', label: '網站緣起導語', selector: '.origin-copy .origin-lead', defaults: { family: 'serif', weight: '400', size: 20 } },
-  { id: 'originBody', label: '網站緣起內文', selector: '.origin-copy > p:not(.block-kicker):not(.origin-lead)', defaults: { family: 'serif', weight: '400', size: 17 } },
   { id: 'topicTitle', label: '分類頁大標', selector: '.topic-hero-title', defaults: { family: 'serif', weight: '600', size: 36 } },
   { id: 'topicHeadline', label: '主視覺標題', selector: '.topic-hero-copy h2', defaults: { family: 'serif', weight: '600', size: 24 } },
   { id: 'topicCopy', label: '主視覺內文', selector: '.topic-hero-copy p', defaults: { family: 'sans', weight: '400', size: 16 } },
@@ -54,6 +55,16 @@ function loadSettings() {
         family: FAMILIES[item.family] ? item.family : role.defaults.family,
         weight: String(item.weight || role.defaults.weight),
         size: Number(item.size) || role.defaults.size,
+      }
+    }
+    if (!saved.sectionBody) {
+      const legacy = saved.story || saved.originBody || saved.cvItem || saved.specDetail || saved.originLead
+      if (legacy) {
+        base.sectionBody = {
+          family: FAMILIES[legacy.family] ? legacy.family : base.sectionBody.family,
+          weight: String(legacy.weight || base.sectionBody.weight),
+          size: Number(legacy.size) || base.sectionBody.size,
+        }
       }
     }
     return base
