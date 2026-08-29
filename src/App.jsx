@@ -22,6 +22,7 @@ import {
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#/, '')
@@ -314,7 +315,7 @@ function TopicHero({ title, meta }) {
         <div className="topic-hero-grid">
           <div className="topic-hero-visual">
             {meta.image && imgOk ? (
-              <img src={meta.image} alt="" onError={() => setImgOk(false)} />
+              <img src={assetUrl(meta.image)} alt="" onError={() => setImgOk(false)} />
             ) : (
               <div className="topic-hero-placeholder" aria-hidden="true" />
             )}
@@ -451,7 +452,7 @@ function AboutPage() {
             <aside className="cv-certs" aria-label="專業證書">
               <figure className="cert-card">
                 <img
-                  src="/certs/pediatric-endo.png"
+                  src={assetUrl('/certs/pediatric-endo.png')}
                   alt="兒科內分泌學次專科醫師證書"
                   loading="lazy"
                 />
@@ -459,7 +460,7 @@ function AboutPage() {
               </figure>
               <figure className="cert-card">
                 <img
-                  src="/certs/endo-metabolism.png"
+                  src={assetUrl('/certs/endo-metabolism.png')}
                   alt="中華民國內分泌暨新陳代謝科專科醫師證書"
                   loading="lazy"
                 />
