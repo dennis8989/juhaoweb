@@ -437,7 +437,7 @@ function AboutPage() {
         <div className="container">
           <div className="cv-panel">
             <div className="cv-copy">
-              <h2 className="block-title cv-heading">醫師簡介與經歷</h2>
+              <h2 className="block-title">醫師簡歷</h2>
               <p className="block-kicker">CURRICULUM VITAE</p>
               <p className="cv-name">{aboutProfile.name} <span>{aboutProfile.english}</span></p>
               <CvBlock title="現職" items={aboutProfile.current} />
