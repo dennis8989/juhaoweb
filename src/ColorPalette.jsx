@@ -4,7 +4,17 @@ const STORAGE_KEY = 'juhao-theme'
 const DEFAULT_THEME = {
   bar: '#2c2622',
   content: '#ffffff',
+  navText: null,
 }
+
+export const COLOR_ROLES = [
+  {
+    id: 'navText',
+    label: '選單文字',
+    selector: '.nav-links > li > a, .nav-drop-btn, .logo-text, .logo-en',
+    themeKey: 'navText',
+  },
+]
 
 const PRESETS = [
   { name: 'COMO', bar: '#2c2622', content: '#ffffff' },
@@ -54,14 +64,17 @@ function isLight(hex) {
 function applyTheme(theme) {
   const bar = normalizeHex(theme.bar) || DEFAULT_THEME.bar
   const content = normalizeHex(theme.content) || DEFAULT_THEME.content
+  const navText = normalizeHex(theme.navText)
   const root = document.documentElement
-  const barFg = isLight(bar) ? '#2c2622' : '#ffffff'
-  const barMuted = isLight(bar) ? '#6b5340' : '#c8b9a6'
+  const barFgAuto = isLight(bar) ? '#2c2622' : '#ffffff'
+  const barFg = navText || barFgAuto
+  const barMuted = isLight(barFg) ? '#6b5340' : '#c8b9a6'
   const alt = mixHex(content, bar, 0.08)
 
   root.style.setProperty('--ink', bar)
   root.style.setProperty('--bar-fg', barFg)
   root.style.setProperty('--bar-muted', barMuted)
+  root.dataset.navTextCustom = navText ? 'true' : 'false'
   root.style.setProperty('--paper', content)
   root.style.setProperty('--cream', alt)
   root.style.setProperty('--cream-deep', mixHex(content, bar, 0.14))
@@ -83,9 +96,10 @@ function loadTheme() {
     return {
       bar: normalizeHex(saved?.bar) || DEFAULT_THEME.bar,
       content: normalizeHex(saved?.content) || DEFAULT_THEME.content,
+      navText: normalizeHex(saved?.navText) || null,
     }
   } catch {
-    return { ...DEFAULT_THEME }
+    return { ...DEFAULT_THEME, navText: null }
   }
 }
 
@@ -96,18 +110,22 @@ export default function ColorPalette() {
   const [theme, setTheme] = useState(loadTheme)
   const [barText, setBarText] = useState(theme.bar)
   const [contentText, setContentText] = useState(theme.content)
+  const [navTextInput, setNavTextInput] = useState(theme.navText || '')
+  const [activeColorId, setActiveColorId] = useState(null)
 
   useEffect(() => {
     applyTheme(theme)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(theme))
     setBarText(theme.bar)
     setContentText(theme.content)
+    setNavTextInput(theme.navText || '')
   }, [theme])
 
   const apply = (next) => {
     setTheme(next)
     setBarText(next.bar)
     setContentText(next.content)
+    setNavTextInput(next.navText || '')
   }
 
   const commit = (key, value) => {
@@ -116,8 +134,17 @@ export default function ColorPalette() {
     apply({ ...theme, [key]: hex })
   }
 
+  const navTextDisplay = theme.navText || (isLight(theme.bar) ? '#2c2622' : '#ffffff')
+
   return (
-    <aside className={`color-palette ${open ? 'open' : ''}`}>
+    <>
+      <ColorChips
+        activeId={activeColorId}
+        setActiveId={setActiveColorId}
+        navTextDisplay={navTextDisplay}
+        onCommitNavText={(value) => commit('navText', value)}
+      />
+      <aside className={`color-palette ${open ? 'open' : ''}`}>
       <button
         type="button"
         className="color-palette-tab"
@@ -142,6 +169,13 @@ export default function ColorPalette() {
           onText={setContentText}
           onCommit={(value) => commit('content', value)}
         />
+        <ColorField
+          label="選單文字"
+          value={navTextDisplay}
+          text={navTextInput}
+          onText={setNavTextInput}
+          onCommit={(value) => commit('navText', value)}
+        />
         <div className="color-presets">
           {PRESETS.map((preset) => (
             <button
@@ -149,19 +183,100 @@ export default function ColorPalette() {
               type="button"
               className="color-preset"
               title={preset.name}
-              onClick={() => apply({ bar: preset.bar, content: preset.content })}
+              onClick={() => apply({ bar: preset.bar, content: preset.content, navText: null })}
             >
               <i style={{ background: preset.bar }} />
               <b style={{ background: preset.content }} />
             </button>
           ))}
         </div>
-        <button type="button" className="color-reset" onClick={() => apply({ ...DEFAULT_THEME })}>
+        <button type="button" className="color-reset" onClick={() => apply({ ...DEFAULT_THEME, navText: null })}>
           還原預設
         </button>
-        <p className="color-hint">用右下角開關可關閉整個設計工具。</p>
+        <p className="color-hint">用右下角開關可關閉整個設計工具。選單列上會出現「色」標籤，可直接調整選單文字色。</p>
       </div>
     </aside>
+    </>
+  )
+}
+
+function visibleTarget(selector) {
+  const nodes = [...document.querySelectorAll(selector)]
+  return nodes.find((node) => {
+    const rect = node.getBoundingClientRect()
+    const style = window.getComputedStyle(node)
+    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0
+  }) || null
+}
+
+function ColorChips({ activeId, setActiveId, navTextDisplay, onCommitNavText }) {
+  const [pin, setPin] = useState(null)
+  const [navTextDraft, setNavTextDraft] = useState(navTextDisplay)
+
+  useEffect(() => {
+    setNavTextDraft(navTextDisplay)
+  }, [navTextDisplay])
+
+  useEffect(() => {
+    const measure = () => {
+      const role = COLOR_ROLES[0]
+      const el = visibleTarget(role.selector)
+      if (!el) {
+        setPin(null)
+        return
+      }
+      const rect = el.getBoundingClientRect()
+      if (rect.bottom < 60 || rect.top > window.innerHeight - 8) {
+        setPin(null)
+        return
+      }
+      setPin({
+        id: role.id,
+        label: role.label,
+        top: Math.max(72, rect.top),
+        left: Math.min(window.innerWidth - 140, Math.max(8, rect.right + 6)),
+      })
+    }
+
+    measure()
+    window.addEventListener('scroll', measure, true)
+    window.addEventListener('resize', measure)
+    window.addEventListener('hashchange', measure)
+    const timer = window.setInterval(measure, 600)
+    return () => {
+      window.removeEventListener('scroll', measure, true)
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('hashchange', measure)
+      window.clearInterval(timer)
+    }
+  }, [])
+
+  if (!pin) return null
+
+  const open = activeId === pin.id
+
+  return (
+    <div className="type-chips">
+      <div
+        className={`type-chip ${open ? 'open' : ''}`}
+        style={{ top: pin.top, left: pin.left }}
+      >
+        <button type="button" className="type-chip-btn" onClick={() => setActiveId(open ? null : pin.id)}>
+          色 {pin.label}
+        </button>
+        {open && (
+          <div className="type-chip-pop">
+            <ColorField
+              label={pin.label}
+              value={navTextDisplay}
+              text={navTextDraft}
+              onText={setNavTextDraft}
+              onCommit={onCommitNavText}
+            />
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
