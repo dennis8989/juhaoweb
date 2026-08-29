@@ -12,10 +12,12 @@
 
 .navbar.navbar-hero {
   background: transparent;
-  color: var(--ink);
-  --bar-fg: var(--ink);
-  --bar-muted: var(--gold);
+  color: var(--bar-fg);
   box-shadow: none;
+}
+
+html:not([data-nav-text-custom='true']) .navbar.navbar-hero {
+  --bar-fg: var(--ink);
 }
 
 .navbar.navbar-hero::before {
@@ -89,7 +91,8 @@
 }
 
 .logo-en {
-  color: var(--bar-muted);
+  color: var(--bar-fg);
+  opacity: 0.88;
   font-size: var(--type-logoEn-size, 0.68rem);
   letter-spacing: 0.18em;
   font-weight: var(--type-logoEn-weight, 400);
@@ -132,11 +135,13 @@
 }
 
 .nav-links > li > a.active {
-  color: var(--bar-muted);
+  color: var(--bar-fg);
+  font-weight: 600;
 }
 
 .nav-links a:hover {
-  color: var(--bar-muted);
+  color: var(--bar-fg);
+  opacity: 0.82;
 }
 
 .nav-links a::after {
@@ -148,16 +153,17 @@
   color: var(--bar-fg) !important;
   padding: 0.32rem 0.85rem !important;
   border-radius: 0;
-  border: 1px solid var(--bar-muted);
+  border: 1px solid color-mix(in srgb, var(--bar-fg) 55%, transparent);
   font-weight: 500;
 }
 
 .nav-appointment-link:hover {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #fff !important;
+  background: color-mix(in srgb, var(--bar-fg) 12%, transparent);
+  border-color: var(--bar-fg);
+  color: var(--bar-fg) !important;
   transform: none;
   box-shadow: none;
+  opacity: 1;
 }
 
 .nav-backdrop {
@@ -199,7 +205,8 @@
 }
 
 .nav-drop-btn:hover {
-  color: var(--bar-muted);
+  color: var(--bar-fg);
+  opacity: 0.82;
 }
 
 .dropdown {
@@ -270,9 +277,11 @@
 }
 
 .nav-appointment-link.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #fff !important;
+  background: color-mix(in srgb, var(--bar-fg) 14%, transparent);
+  border-color: var(--bar-fg);
+  color: var(--bar-fg) !important;
+  font-weight: 600;
+  opacity: 1;
 }
 
 .subnav-btn,
@@ -2070,8 +2079,9 @@
     content: '';
     width: 0.42rem;
     height: 0.42rem;
-    border-right: 1.5px solid var(--bar-muted);
-    border-bottom: 1.5px solid var(--bar-muted);
+    border-right: 1.5px solid var(--bar-fg);
+    border-bottom: 1.5px solid var(--bar-fg);
+    opacity: 0.72;
     transform: rotate(45deg);
     transition: transform 0.2s ease;
     flex-shrink: 0;
@@ -2092,7 +2102,9 @@
 
   .nav-appointment-link.active {
     background: transparent;
-    color: var(--bar-muted) !important;
+    color: var(--bar-fg) !important;
+    font-weight: 600;
+    opacity: 1;
   }
 
   .dropdown {
@@ -2107,7 +2119,8 @@
 
   .dropdown a,
   .dropdown-soon {
-    color: var(--bar-muted) !important;
+    color: var(--bar-fg) !important;
+    opacity: 0.82;
     padding: 0.55rem 0 0.55rem 0.2rem;
   }
 
@@ -2115,6 +2128,8 @@
   .dropdown a.active {
     background: transparent;
     color: var(--bar-fg) !important;
+    opacity: 1;
+    font-weight: 600;
   }
 
   .dropdown-end {
