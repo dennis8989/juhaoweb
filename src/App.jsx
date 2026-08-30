@@ -100,7 +100,7 @@ function App() {
         activeSub={activeSub}
         activeView={route.view}
       />
-      <main className={`page ${route.view === 'about' ? 'page-about' : ''}`}>
+      <main className={`page ${route.view === 'about' ? 'page-about' : ''} ${isTopicPage ? 'page-topic' : ''}`}>
         {isTopicPage && (
           <TopicHero
             title={topicMeta.title}

@@ -19,6 +19,7 @@
   --warm-hero-deep: #e4c49a;
   --warm-hero-fade: #faf3ea;
   --warm-hero-pattern: url('/patterns/warm-hero-texture.png');
+  --nav-height: 76px;
   --warm-hero-stack:
     linear-gradient(
       180deg,
@@ -26,7 +27,7 @@
       transparent 62%,
       color-mix(in srgb, var(--warm-hero-fade) 45%, transparent) 82%,
       var(--warm-hero-fade) 92%,
-      var(--paper) 100%
+      var(--warm-hero-fade) 100%
     ),
     var(--warm-hero-pattern);
   /* 分類頁主視覺：獨立於選單列／全站 cream，可單獨調整 */
@@ -40,7 +41,7 @@
       transparent 55%,
       color-mix(in srgb, var(--topic-hero-fade) 50%, transparent) 78%,
       var(--topic-hero-fade) 90%,
-      var(--paper) 100%
+      var(--topic-hero-fade) 100%
     ),
     var(--topic-hero-pattern);
   --topic-hero-title: #2c2622;

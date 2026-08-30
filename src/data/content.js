@@ -263,6 +263,7 @@ export const sectionMeta = {
   'bone-age': {
     title: '骨齡檢測',
     intro: '骨齡反映體內成熟度，是輔助工具，不能單獨診斷矮小或性早熟。重點是找出家長真正擔心的核心問題。',
+    image: '/topics/bone-age-timeline.png',
   },
   'bone-age/meaning': {
     title: '骨齡評估的意義',
@@ -276,10 +277,12 @@ export const sectionMeta = {
   'short-stature': {
     title: '身材矮小或落後',
     intro: '矮小要看身高百分位與生長速率；落後可能來自營養、慢性疾病、內分泌問題或青春期時序。',
+    image: '/topics/short-stature-growth.png',
   },
   'short-stature/overview': {
     title: '身材矮小或落後',
     intro: '從生長曲線、遺傳身高到預測身高，先釐清「現在矮不矮」與「以後可能多高」，再討論要不要治療。',
+    image: '/topics/short-stature-percentile.png',
   },
   'short-stature/sga': {
     title: '出生體重過輕併矮小',
@@ -300,6 +303,7 @@ export const sectionMeta = {
   'puberty/gender': {
     title: '青少年性別不安',
     intro: '提供跨性別青少年之青春期阻斷療法評估與討論。本門診不提供成人跨性別醫療。',
+    image: '/topics/puberty-gender.png',
   },
   'puberty/delayed': {
     title: '青春期過晚',

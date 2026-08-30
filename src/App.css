@@ -284,21 +284,23 @@ html:not([data-nav-text-custom='true']) .navbar {
 }
 
 .page {
-  padding-top: 76px;
+  padding-top: 0;
   min-height: 100vh;
-  background: var(--paper);
+  background: transparent;
 }
 
-.page-about {
+.page-body {
+  padding-top: var(--nav-height);
+  min-height: 40vh;
+}
+
+.page-about .page-body,
+.page-topic .page-body {
   padding-top: 0;
 }
 
 .page-about .about-intro.warm-hero-surface {
-  padding-top: calc(76px + 2.4rem);
-}
-
-.page-body {
-  min-height: 40vh;
+  padding-top: calc(var(--nav-height) + 2.4rem);
 }
 
 .topic-hero {
@@ -308,7 +310,7 @@ html:not([data-nav-text-custom='true']) .navbar {
   background-repeat: no-repeat, repeat;
   background-position: center top, center top;
   background-attachment: scroll, scroll;
-  padding: 2.2rem 0 2.6rem;
+  padding: calc(var(--nav-height) + 2.2rem) 0 2.6rem;
 }
 
 .topic-hero-title {
