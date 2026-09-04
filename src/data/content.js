@@ -263,7 +263,7 @@ export const sectionMeta = {
   'bone-age': {
     title: '骨齡檢測',
     intro: '骨齡反映體內成熟度，是輔助工具，不能單獨診斷矮小或性早熟。重點是找出家長真正擔心的核心問題。',
-    image: '/topics/bone-age-timeline.png',
+    image: '/topic-heroes/bone-age-machine.png',
   },
   'bone-age/meaning': {
     title: '骨齡評估的意義',
@@ -273,61 +273,72 @@ export const sectionMeta = {
   'bone-age/machine': {
     title: '診所骨齡機介紹',
     intro: '診所提供骨齡檢查，方便在門診當下完成評估，並由兒童內分泌專科醫師判讀。',
+    image: '/topic-heroes/bone-age-machine.png',
   },
   'short-stature': {
     title: '身材矮小或落後',
     intro: '矮小要看身高百分位與生長速率；落後可能來自營養、慢性疾病、內分泌問題或青春期時序。',
-    image: '/topics/short-stature-growth.png',
+    image: '/topic-heroes/short-stature.png',
   },
   'short-stature/overview': {
     title: '身材矮小或落後',
     intro: '從生長曲線、遺傳身高到預測身高，先釐清「現在矮不矮」與「以後可能多高」，再討論要不要治療。',
-    image: '/topics/short-stature-percentile.png',
+    image: '/topic-heroes/short-stature.png',
   },
   'short-stature/sga': {
     title: '出生體重過輕併矮小',
     intro: 'SGA 孩子若兩歲後仍明顯矮小，是兒童內分泌門診需要特別關注的族群，部分符合生長激素治療條件。',
+    image: '/topic-heroes/short-stature-sga.png',
   },
   puberty: {
     title: '性早熟與青春期',
     intro: '青春期太早、進展太快、太晚，或性別不安，評估方式與治療目標各不相同，需要專科個別化討論。',
+    image: '/topic-heroes/puberty-precocious.png',
   },
   'puberty/precocious': {
     title: '性早熟',
     intro: '性早熟的定義是年紀太小進入青春期，而且一定會有身體變化。骨齡快本身並不是性早熟。',
+    image: '/topic-heroes/puberty-precocious.png',
   },
   'puberty/rapid': {
     title: '青春期進展過快',
     intro: '即使不是性早熟，青春期進展過快仍可能影響最終身高。是否用藥要看「用幾年骨齡，換到多少身高」。',
+    image: '/topic-heroes/puberty-rapid.png',
   },
   'puberty/gender': {
     title: '青少年性別不安',
     intro: '提供跨性別青少年之青春期阻斷療法評估與討論。本門診不提供成人跨性別醫療。',
-    image: '/topics/puberty-gender.png',
+    image: '/topic-heroes/puberty-gender.png',
   },
   'puberty/delayed': {
     title: '青春期過晚',
     intro: '青春期明顯晚於同儕時，需區分體質性延遲與需要檢查的內分泌或慢性問題。相關衛教將陸續補充。',
+    image: '/topic-heroes/puberty-delayed.png',
   },
   gh: {
     title: '生長激素治療',
     intro: '生長激素有明確適應症與劑量考量，效果因人而異。是否使用、劑量、停藥時機都需要專科追蹤。',
+    image: '/topic-heroes/gh.png',
   },
   gnrh: {
     title: '抑制青春期治療',
     intro: '青春期抑制針的目標不是「骨齡變慢」本身，而是在安全前提下爭取更理想的成年身高，並充分告知效益與限制。',
+    image: '/topic-heroes/gnrh.png',
   },
   nutrition: {
     title: '兒童營養與其他',
     intro: '營養、睡眠與生活型態是成長的基礎；許多「長高秘方」缺少實證，需要一一釐清。',
+    image: '/topic-heroes/nutrition-diet.png',
   },
   'nutrition/diet': {
     title: '兒童營養',
     intro: '碳水化合物、乳製品、維生素 D 等常見問題，用研究與臨床經驗回答，而不是網路傳言。',
+    image: '/topic-heroes/nutrition-diet.png',
   },
   'nutrition/myths': {
     title: '兒童長高迷思',
     intro: '精胺酸、Clonidine、補品與各種偏方，門診最常被問到的迷思整理於此。',
+    image: '/topic-heroes/nutrition-myths.png',
   },
 }
 

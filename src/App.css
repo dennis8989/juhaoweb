@@ -344,7 +344,9 @@ html:not([data-nav-text-custom='true']) .navbar {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
   display: block;
+  padding: 0.6rem 1.2rem;
 }
 
 .topic-hero-placeholder {
