@@ -11,9 +11,9 @@
   --ink-soft: #4f4741;
   --gold: #8f6b45;
   --gold-soft: #c4b5a4;
-  --cream: #f7f5f2;
-  --cream-deep: #ebe6df;
-  --paper: #ffffff;
+  --cream: #ebe9e1;
+  --cream-deep: #e4e1d8;
+  --paper: #fcfaf2;
   --warm-hero: #f0d6b5;
   --warm-hero-light: #f8e8d4;
   --warm-hero-deep: #e4c49a;
@@ -50,9 +50,9 @@
   --primary-color: #8f6b45;
   --secondary-color: #a57f55;
   --accent-color: #c4b5a4;
-  --bg-dark: #ffffff;
-  --bg-light: #f7f5f2;
-  --bg-section: #f7f5f2;
+  --bg-dark: #fcfaf2;
+  --bg-light: #ebe9e1;
+  --bg-section: #ebe9e1;
   --text-primary: #2c2622;
   --text-secondary: #4f4741;
   --text-muted: #7a726a;

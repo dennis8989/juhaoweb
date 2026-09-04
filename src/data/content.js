@@ -60,6 +60,7 @@ export const secondLevel = {
   nutrition: [
     { id: 'diet', label: '兒童營養', path: '/nutrition/diet' },
     { id: 'myths', label: '兒童長高迷思', path: '/nutrition/myths' },
+    { id: 'endocrine', label: '兒童內分泌疾患', path: '/nutrition/endocrine' },
   ],
 }
 
@@ -229,7 +230,7 @@ export const specialties = [
     id: 'endocrine',
     title: '兒童內分泌諮詢',
     detail: '糖尿病、甲狀腺等疾病之評估與轉介／無常規用藥',
-    path: '/about',
+    path: '/nutrition/endocrine',
   },
   {
     id: 'gene',
@@ -339,6 +340,11 @@ export const sectionMeta = {
     title: '兒童長高迷思',
     intro: '精胺酸、Clonidine、補品與各種偏方，門診最常被問到的迷思整理於此。',
     image: '/topic-heroes/nutrition-myths.png',
+  },
+  'nutrition/endocrine': {
+    title: '兒童內分泌疾患',
+    intro: '糖尿病、甲狀腺等兒童內分泌疾病之評估與轉介；本門診以成長發育為主，無常規內分泌用藥。',
+    image: '/topic-heroes/endocrine.png',
   },
 }
 
@@ -672,6 +678,7 @@ const heroHeadlines = {
   nutrition: '成長需要營養，但不需要神秘偏方',
   'nutrition/diet': '把長高相關的營養問題說清楚',
   'nutrition/myths': '門診最常被問到的長高迷思',
+  'nutrition/endocrine': '兒童內分泌疾患的評估與轉介',
 }
 
 export function getSectionMeta(view, sub) {

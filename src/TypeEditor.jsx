@@ -73,7 +73,7 @@ export const TYPE_ROLES = [
     group: '導覽列',
     selector: '.nav-links > li > a, .nav-drop-btn',
     affects: '導覽列所有選單文字（含下拉按鈕）。同組文字會一起變更。',
-    defaults: { family: 'sans', weight: '400', size: 13 },
+    defaults: { family: 'sans', weight: '400', size: 16 },
   },
   {
     id: 'aboutEyebrow',
@@ -81,7 +81,7 @@ export const TYPE_ROLES = [
     group: '關於我',
     selector: '.about-eyebrow',
     affects: '關於我首屏上方小標文字。',
-    defaults: { family: 'hand', weight: '400', size: 14 },
+    defaults: { family: 'hand', weight: '400', size: 15 },
   },
   {
     id: 'aboutName',
@@ -105,7 +105,7 @@ export const TYPE_ROLES = [
     group: '關於我',
     selector: '.about-lead',
     affects: '關於我首屏導言段落。',
-    defaults: { family: 'sans', weight: '400', size: 17 },
+    defaults: { family: 'hand', weight: '400', size: 18, color: '#1c1c1c' },
   },
   {
     id: 'blockTitle',
@@ -113,7 +113,7 @@ export const TYPE_ROLES = [
     group: '共用區塊',
     selector: '.block-title',
     affects: '各內容區塊中文標題。同組標題會一起變更。',
-    defaults: { family: 'serif', weight: '600', size: 22 },
+    defaults: { family: 'serif', weight: '600', size: 26 },
   },
   {
     id: 'blockKicker',
@@ -129,7 +129,7 @@ export const TYPE_ROLES = [
     group: '共用區塊',
     selector: '.about-story p, .cv-block li, .specialty-row span, .origin-copy .origin-lead, .origin-copy .origin-body',
     affects: '故事段落、履歷列表、專長說明、起源內文。同組會一起變更。',
-    defaults: { family: 'serif', weight: '400', size: 17 },
+    defaults: { family: 'sans', weight: '500', size: 18, color: '#1c1c1c' },
   },
   {
     id: 'cvName',
@@ -153,7 +153,7 @@ export const TYPE_ROLES = [
     group: '履歷／專長',
     selector: '.specialty-row strong',
     affects: '專長列表名稱。同組會一起變更。',
-    defaults: { family: 'serif', weight: '600', size: 17 },
+    defaults: { family: 'serif', weight: '600', size: 18 },
   },
   {
     id: 'topicTitle',
@@ -177,7 +177,7 @@ export const TYPE_ROLES = [
     group: '分類頁',
     selector: '.topic-hero-copy p',
     affects: '分類頁主視覺說明。',
-    defaults: { family: 'sans', weight: '400', size: 16 },
+    defaults: { family: 'sans', weight: '400', size: 18 },
   },
   {
     id: 'topicTab',
@@ -201,7 +201,7 @@ export const TYPE_ROLES = [
     group: '醫師日誌',
     selector: '.article-card-excerpt',
     affects: '日誌卡片摘要。同組會一起變更。',
-    defaults: { family: 'sans', weight: '400', size: 16 },
+    defaults: { family: 'sans', weight: '400', size: 16, color: '#524e4d' },
   },
   {
     id: 'clinicTitle',
@@ -246,7 +246,17 @@ export const TYPE_ROLES = [
 ]
 
 function emptyRoles() {
-  return Object.fromEntries(TYPE_ROLES.map((role) => [role.id, { ...role.defaults, color: null }]))
+  return Object.fromEntries(
+    TYPE_ROLES.map((role) => [
+      role.id,
+      {
+        family: role.defaults.family,
+        weight: role.defaults.weight,
+        size: role.defaults.size,
+        color: role.defaults.color ?? null,
+      },
+    ]),
+  )
 }
 
 function emptyStore() {
@@ -267,7 +277,7 @@ function loadStore() {
         family: FAMILIES[item.family] ? item.family : role.defaults.family,
         weight: String(item.weight || role.defaults.weight),
         size: Number(item.size) || role.defaults.size,
-        color: normalizeHex(item.color) || null,
+        color: normalizeHex(item.color) || role.defaults.color || null,
       }
     }
 
@@ -346,7 +356,7 @@ function applyStore(store) {
 }
 
 try {
-  if (localStorage.getItem(STORAGE_KEY)) applyStore(loadStore())
+  applyStore(loadStore())
 } catch {
   /* ignore */
 }

@@ -3,12 +3,12 @@ import { useEffect, useState } from 'react'
 const STORAGE_KEY = 'juhao-theme'
 const DEFAULT_THEME = {
   bar: '#2c2622',
-  content: '#ffffff',
+  content: '#fcfaf2',
   navText: null,
 }
 
 const PRESETS = [
-  { name: 'COMO', bar: '#2c2622', content: '#ffffff' },
+  { name: 'COMO', bar: '#2c2622', content: '#fcfaf2' },
   { name: '墨黑', bar: '#000000', content: '#f5f2ee' },
   { name: '炭灰', bar: '#2b2b2b', content: '#f7f7f5' },
   { name: '森綠', bar: '#2f3d34', content: '#f4f6f2' },
