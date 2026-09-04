@@ -400,7 +400,35 @@ function AboutPage() {
         <div className="container about-intro-inner">
           <div className="about-intro-copy">
             <p className="about-eyebrow">兒童成長發育專科 · 小兒內分泌</p>
-            <h1 className="about-brand">{aboutProfile.name}</h1>
+            <div className="about-brand-row">
+              <h1 className="about-brand">{aboutProfile.name}</h1>
+              <div className="about-social" aria-label="社群媒體">
+                <a
+                  href={FACEBOOK_PAGE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="about-social-link"
+                  aria-label="Facebook"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6H17V4.1C16.6 4 15.5 4 14.2 4c-2.7 0-4.5 1.6-4.5 4.6v2h-3v3.2h3V22h4z" />
+                  </svg>
+                </a>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="about-social-link"
+                  aria-label="Instagram"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2z" />
+                    <circle cx="17.4" cy="6.7" r="1.15" />
+                    <path d="M16.5 3H7.5A4.5 4.5 0 0 0 3 7.5v9A4.5 4.5 0 0 0 7.5 21h9a4.5 4.5 0 0 0 4.5-4.5v-9A4.5 4.5 0 0 0 16.5 3zm3 13.5a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9z" />
+                  </svg>
+                </a>
+              </div>
+            </div>
             <p className="about-brand-en">{aboutProfile.english}</p>
             <p className="about-lead">
               具台大兒童內分泌科完整訓練、兒童內分泌次專科證照，以及多年醫學中心主治歷練與豐富自費治療經驗；提供健康至疾病的兒童成長全光譜照護，陪伴孩子走好成長每一步。
