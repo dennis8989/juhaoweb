@@ -86,11 +86,14 @@ async function fetchAllPublished() {
   return Promise.all(published.map(withResolvedImages))
 }
 
+export function invalidatePublishedArticles() {
+  listCache = null
+  listInflight = null
+  IMAGE_CACHE.clear()
+}
+
 export async function listPublishedArticles({ force } = {}) {
-  if (force) {
-    listCache = null
-    listInflight = null
-  }
+  if (force) invalidatePublishedArticles()
   if (listCache) return listCache
   if (!listInflight) {
     listInflight = fetchAllPublished()

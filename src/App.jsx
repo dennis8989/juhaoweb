@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import DesignTools from './DesignToggle.jsx'
+import AdminApp from './admin/AdminApp.jsx'
+import { go, parseHash } from './lib/hash.js'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
@@ -22,25 +24,6 @@ import { useArticle, usePublishedArticles } from './data/articlesRepository.js'
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
-
-function parseHash() {
-  const raw = window.location.hash.replace(/^#/, '')
-  const parts = raw.split('/').filter(Boolean)
-  return {
-    view: parts[0] || 'about',
-    sub: parts[1] || null,
-    extra: parts[2] || null,
-  }
-}
-
-function go(path) {
-  const next = path.startsWith('#') ? path : `#${path.startsWith('/') ? path : `/${path}`}`
-  if (window.location.hash === next) {
-    window.dispatchEvent(new HashChangeEvent('hashchange'))
-    return
-  }
-  window.location.hash = next
-}
 
 function App() {
   const [route, setRoute] = useState(parseHash)
@@ -88,6 +71,10 @@ function App() {
   const activeSub = route.view === activeDir ? route.sub : null
   const isTopicPage = directoryItems.some((item) => item.id === route.view && item.id !== 'about')
   const topicMeta = isTopicPage ? getSectionMeta(route.view, route.sub) : null
+
+  if (route.view === 'admin') {
+    return <AdminApp route={route} />
+  }
 
   return (
     <div className="app">
