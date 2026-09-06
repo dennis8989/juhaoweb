@@ -7,9 +7,9 @@ const STORAGE_KEY = 'juhao-design-tools'
 
 function loadOn() {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== '0'
+    return localStorage.getItem(STORAGE_KEY) === '1'
   } catch {
-    return true
+    return false
   }
 }
 

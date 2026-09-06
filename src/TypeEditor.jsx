@@ -204,6 +204,22 @@ export const TYPE_ROLES = [
     defaults: { family: 'sans', weight: '400', size: 16, color: '#524e4d' },
   },
   {
+    id: 'articleBodyTitle',
+    label: '文章頁大標',
+    group: '醫師日誌',
+    selector: '.article-title-full',
+    affects: '文章內頁大標題。',
+    defaults: { family: 'sans', weight: '600', size: 36 },
+  },
+  {
+    id: 'articleBody',
+    label: '文章內文',
+    group: '醫師日誌',
+    selector: '.article-content, .article-content p',
+    affects: '文章內頁正文段落。同組會一起變更。',
+    defaults: { family: 'sans', weight: '400', size: 17 },
+  },
+  {
     id: 'clinicTitle',
     label: '門診表標題',
     group: '門診／交通',

@@ -341,7 +341,7 @@ function PageBody({ route }) {
     return (
       <SectionFrame
         title={menuItem?.label || '衛教文章'}
-        intro="由 Facebook 衛教文搬運至本站對應目錄，完整圖文仍可於原文閱讀。"
+        intro="粉專衛教文已搬進本站，可直接閱讀全文與配圖；文末仍可連回 Facebook 原文。"
       >
         <ArticleGrid items={list} />
       </SectionFrame>
@@ -584,6 +584,9 @@ function ArticleGrid({ items, emptyText }) {
           event.preventDefault()
           go(`/article/${article.id}`)
         }}>
+          {article.images?.[0] && (
+            <img className="article-card-thumb" src={assetUrl(article.images[0])} alt="" />
+          )}
           <div className="article-card-content">
             <h3 className="article-card-title">{article.title}</h3>
             <p className="article-card-excerpt">{article.excerpt}</p>
@@ -618,10 +621,22 @@ function ArticleDetail({ id }) {
             <h1 className="article-title-full">{article.title}</h1>
             <p className="article-kicker">李如浩醫師 · 兒童成長發育專科</p>
           </div>
+          {article.images?.length > 0 && (
+            <div className="article-images">
+              {article.images.map((src, index) => (
+                <figure key={src} className="article-figure">
+                  <img
+                    src={assetUrl(src)}
+                    alt={article.images.length > 1 ? `${article.title}（${index + 1}）` : article.title}
+                  />
+                </figure>
+              ))}
+            </div>
+          )}
           {article.content ? (
             <div className="article-content">
-              {article.content.map((paragraph) => (
-                <p key={paragraph.slice(0, 32)}>{paragraph}</p>
+              {article.content.map((paragraph, index) => (
+                <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
               ))}
             </div>
           ) : (

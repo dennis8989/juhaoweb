@@ -125,13 +125,6 @@ html:not([data-nav-text-custom='true']) .navbar {
   white-space: nowrap;
 }
 
-.nav-links > li:first-of-type > a,
-.nav-links > li:first-of-type > .nav-drop-btn {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 17px;
-}
-
 .nav-links > li > a.active {
   color: var(--type-nav-color, var(--bar-fg));
   font-weight: 600;
@@ -721,10 +714,9 @@ html:not([data-nav-text-custom='true']) .navbar {
   width: 100%;
   height: auto;
   display: block;
-  aspect-ratio: 5 / 4;
   object-fit: contain;
   object-position: center;
-  background: #f3eee6;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -1370,7 +1362,19 @@ html:not([data-nav-text-custom='true']) .navbar {
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.15rem;
+}
+
+.article-card-thumb {
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 10px;
+  margin-top: 1.2rem;
+  background: var(--bg-section);
 }
 
 .article-card:hover {
@@ -1382,6 +1386,8 @@ html:not([data-nav-text-custom='true']) .navbar {
 
 .article-card-content {
   padding: 1.35rem 0.2rem 1.45rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .article-date-badge {
@@ -1491,10 +1497,27 @@ html:not([data-nav-text-custom='true']) .navbar {
   border-bottom: 2px solid var(--bg-section);
 }
 
+.article-images {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0 0 2.4rem;
+}
+
+.article-figure {
+  margin: 0;
+}
+
+.article-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
 .article-title-full {
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 600;
-  font-family: var(--font-serif);
+  font-family: var(--type-articleBodyTitle-family, var(--font-sans));
   color: var(--text-primary);
   margin-bottom: 1.5rem;
   line-height: 1.3;
@@ -1530,14 +1553,17 @@ html:not([data-nav-text-custom='true']) .navbar {
 .article-content {
   color: var(--text-primary);
   line-height: 1.95;
-  font-size: 17px;
+  font-size: var(--type-articleBody-size, 17px);
   margin-bottom: 3rem;
-  font-family: var(--font-sans);
-  font-weight: 400;
+  font-family: var(--type-articleBody-family, var(--font-sans));
+  font-weight: var(--type-articleBody-weight, 400);
 }
 
 .article-content p {
   margin-bottom: 1.5rem;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
 }
 
 .article-footer {
@@ -1713,12 +1739,24 @@ html:not([data-nav-text-custom='true']) .navbar {
   column-gap: 0.45rem;
 }
 
+.schedule-corner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .schedule-day {
   grid-row: 1;
   text-align: center;
   padding: 0.4rem 0 0.8rem;
   color: var(--ink);
 }
+
+.schedule-day:nth-child(2) { grid-column: 2; }
+.schedule-day:nth-child(3) { grid-column: 3; }
+.schedule-day:nth-child(4) { grid-column: 4; }
+.schedule-day:nth-child(5) { grid-column: 5; }
+.schedule-day:nth-child(6) { grid-column: 6; }
+.schedule-day:nth-child(7) { grid-column: 7; }
 
 .schedule-day span {
   display: block;
@@ -2075,10 +2113,6 @@ html:not([data-nav-text-custom='true']) .navbar {
     min-height: 0;
   }
 
-  .cert-card img {
-    aspect-ratio: 5 / 4;
-  }
-
   .cert-slot {
     min-height: 160px;
   }
@@ -2173,7 +2207,7 @@ html:not([data-nav-text-custom='true']) .navbar {
     width: 100%;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.02rem;
+    font-size: var(--type-nav-size, 16px);
     padding: 0.95rem 0;
     text-align: left;
   }
@@ -2324,6 +2358,12 @@ html:not([data-nav-text-custom='true']) .navbar {
 
   .article-title-full {
     font-size: 1.75rem;
+  }
+
+  .article-card-thumb {
+    width: 76px;
+    height: 76px;
+    margin-top: 1.1rem;
   }
 
   .article-content {

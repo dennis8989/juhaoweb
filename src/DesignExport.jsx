@@ -14,7 +14,7 @@ const FAMILY_LABEL = {
 
 const DEFAULT_THEME = {
   bar: '#2c2622',
-  content: '#ffffff',
+  content: '#fcfaf2',
   navText: null,
 }
 
@@ -28,11 +28,13 @@ function readJson(key) {
 
 function roleChanged(role, value) {
   if (!value) return false
+  const defaultColor = role.defaults.color || null
+  const nextColor = value.color || null
   return (
     value.family !== role.defaults.family
     || String(value.weight) !== String(role.defaults.weight)
     || Number(value.size) !== Number(role.defaults.size)
-    || Boolean(value.color)
+    || nextColor !== defaultColor
   )
 }
 
