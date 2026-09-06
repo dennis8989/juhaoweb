@@ -1,12 +1,16 @@
 version: 1
-frontend:
+backend:
   phases:
-    preBuild:
-      commands:
-        - nvm use 20 || nvm install 20
-        - npm ci
     build:
       commands:
+        - nvm use 20 || nvm install 20
+        - npm ci --cache .npm --prefer-offline
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+frontend:
+  phases:
+    build:
+      commands:
+        - nvm use 20 || nvm install 20
         - npm run build
   artifacts:
     baseDirectory: dist
@@ -14,4 +18,5 @@ frontend:
       - '**/*'
   cache:
     paths:
+      - .npm/**/*
       - node_modules/**/*
