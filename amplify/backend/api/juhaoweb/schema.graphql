@@ -1,0 +1,26 @@
+enum ArticleStatus {
+  published
+  draft
+}
+
+type Article
+  @model
+  @auth(
+    rules: [
+      { allow: public, provider: apiKey, operations: [read] }
+      { allow: private, provider: userPools, operations: [create, update, delete, read] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  excerpt: String
+  content: [String]
+  facebookUrl: String
+  dirs: [String]
+  subs: [String]
+  articleCats: [String]
+  images: [String]
+  status: ArticleStatus!
+    @index(name: "articlesByStatus", queryField: "articlesByStatus", sortKeyFields: ["createdAt"])
+  createdAt: AWSDateTime
+}

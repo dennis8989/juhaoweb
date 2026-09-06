@@ -1,0 +1,14 @@
+{
+  "resourceName": "articleimages",
+  "bucketName": "juhaowebc13146ec2be1400c882aba57ffaf64bd",
+  "policyUUID": "f3fca232",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "READ"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ]
+}

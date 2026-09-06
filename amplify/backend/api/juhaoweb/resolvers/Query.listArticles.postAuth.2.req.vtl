@@ -1,0 +1,16 @@
+## Force guests (API key) to only list published articles.
+#if( !$ctx.identity.claims || $util.isNull($ctx.identity.claims.get("sub")) )
+  #set( $publishedFilter = {
+    "status": {
+      "eq": "published"
+    }
+  } )
+  #if( $util.isNullOrEmpty($ctx.args.filter) )
+    #set( $ctx.args.filter = $publishedFilter )
+  #else
+    #set( $ctx.args.filter = {
+      "and": [$ctx.args.filter, $publishedFilter]
+    } )
+  #end
+#end
+$util.toJson({})

@@ -1,0 +1,5 @@
+## Force guests (API key) onto the published GSI partition.
+#if( !$ctx.identity.claims || $util.isNull($ctx.identity.claims.get("sub")) )
+  #set( $ctx.args.status = "published" )
+#end
+$util.toJson({})
