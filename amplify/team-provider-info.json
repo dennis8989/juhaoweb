@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-juhaoweb-dev-a807b-authRole",
+      "UnauthRoleArn": "arn:aws:iam::333418482423:role/amplify-juhaoweb-dev-a807b-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::333418482423:role/amplify-juhaoweb-dev-a807b-authRole",
+      "Region": "ap-northeast-1",
+      "DeploymentBucketName": "amplify-juhaoweb-dev-a807b-deployment",
+      "UnauthRoleName": "amplify-juhaoweb-dev-a807b-unauthRole",
+      "StackName": "amplify-juhaoweb-dev-a807b",
+      "StackId": "arn:aws:cloudformation:ap-northeast-1:333418482423:stack/amplify-juhaoweb-dev-a807b/6c80cca0-a9ae-11f1-8cf3-06f477954935",
+      "AmplifyAppId": "d1zwf54820xsiz"
+    }
+  }
+}
