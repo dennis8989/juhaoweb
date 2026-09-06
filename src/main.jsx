@@ -1,7 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { configureAmplify } from './lib/amplify.js'
 import App from './App.jsx'
 import './index.css'
+
+configureAmplify()
 
 document.documentElement.style.setProperty(
   '--warm-hero-pattern',

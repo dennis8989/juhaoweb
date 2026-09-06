@@ -13,12 +13,11 @@ import {
   caseMenu,
   casePages,
   directoryItems,
-  filterArticles,
-  getArticle,
   getSectionMeta,
   secondLevel,
   specialties,
 } from './data/content.js'
+import { useArticle, usePublishedArticles } from './data/articlesRepository.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
@@ -62,6 +61,8 @@ function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  const articleState = useArticle(route.view === 'article' ? route.sub : null)
+
   const activeDir = useMemo(() => {
     if (route.view === 'articles') {
       const map = {
@@ -77,12 +78,11 @@ function App() {
       return map[route.sub] || ''
     }
     if (route.view === 'article') {
-      const article = getArticle(route.sub)
-      return article?.dirs?.[0] || 'about'
+      return articleState.article?.dirs?.[0] || 'about'
     }
     if (route.view === 'collaborate') return ''
     return directoryItems.some((item) => item.id === route.view) ? route.view : 'about'
-  }, [route])
+  }, [route, articleState.article])
 
   const subItems = secondLevel[activeDir] || []
   const activeSub = route.view === activeDir ? route.sub : null
@@ -336,14 +336,13 @@ function PageBody({ route }) {
   }
   if (route.view === 'articles') {
     const cat = route.sub || 'latest'
-    const list = filterArticles({ articleCat: cat })
     const menuItem = articleMenu.find((item) => item.id === cat)
     return (
       <SectionFrame
         title={menuItem?.label || '衛教文章'}
         intro="粉專衛教文已搬進本站，可直接閱讀全文與配圖；文末仍可連回 Facebook 原文。"
       >
-        <ArticleGrid items={list} />
+        <ArticleList articleCat={cat} />
       </SectionFrame>
     )
   }
@@ -359,13 +358,15 @@ function PageBody({ route }) {
 
   const dir = route.view
   const sub = route.sub
-  const meta = getSectionMeta(dir, sub)
-  const list = filterArticles(sub ? { dir, sub } : { dir })
 
   return (
     <section className="content-section topic-list">
       <div className="container">
-        <ArticleGrid items={list} emptyText="此分類文章將陸續補充。歡迎先閱讀相關主題，或預約門診個別討論。" />
+        <ArticleList
+          dir={dir}
+          sub={sub || undefined}
+          emptyText="此分類文章將陸續補充。歡迎先閱讀相關主題，或預約門診個別討論。"
+        />
       </div>
     </section>
   )
@@ -551,10 +552,12 @@ function CvBlock({ title, items }) {
 
 function CasePage({ sub }) {
   const key = sub || null
-  const meta = getSectionMeta('cases', key)
   const relatedCats = key ? casePages[key]?.relatedArticleCats || [] : []
-  const related = relatedCats.flatMap((cat) => filterArticles({ articleCat: cat }))
-  const unique = related.filter((item, index, arr) => arr.findIndex((row) => row.id === item.id) === index)
+  const { status, items } = usePublishedArticles()
+  const unique = items.filter((item, index, arr) => {
+    if (!relatedCats.some((cat) => (item.articleCats || []).includes(cat))) return false
+    return arr.findIndex((row) => row.id === item.id) === index
+  })
 
   return (
     <section className="content-section topic-list">
@@ -562,15 +565,46 @@ function CasePage({ sub }) {
         <div className="empty-note">
           <p>個案圖文整理中。以下先提供相關衛教，方便家長對照閱讀；正式案例刊出後會更新於此。</p>
         </div>
-        {unique.length > 0 && (
+        {relatedCats.length > 0 && (
           <>
-            <h3 className="subsection-title">相關衛教</h3>
-            <ArticleGrid items={unique} />
+            {status === 'ready' && unique.length > 0 && (
+              <h3 className="subsection-title">相關衛教</h3>
+            )}
+            <ArticleFeed
+              status={status}
+              items={unique}
+              emptyText="相關衛教將在文章上架後顯示。"
+            />
           </>
         )}
       </div>
     </section>
   )
+}
+
+function ArticleList({ dir, sub, articleCat, emptyText }) {
+  const { status, items } = usePublishedArticles({ dir, sub, articleCat })
+  return (
+    <ArticleFeed
+      status={status}
+      items={items}
+      emptyText={emptyText}
+    />
+  )
+}
+
+function ArticleFeed({ status, items, emptyText }) {
+  if (status === 'loading') {
+    return <p className="empty-note" role="status">文章載入中…</p>
+  }
+  if (status === 'error') {
+    return (
+      <p className="empty-note" role="alert">
+        文章暫時無法載入，請稍後再試。
+      </p>
+    )
+  }
+  return <ArticleGrid items={items} emptyText={emptyText} />
 }
 
 function ArticleGrid({ items, emptyText }) {
@@ -585,7 +619,7 @@ function ArticleGrid({ items, emptyText }) {
           go(`/article/${article.id}`)
         }}>
           {article.images?.[0] && (
-            <img className="article-card-thumb" src={assetUrl(article.images[0])} alt="" />
+            <img className="article-card-thumb" src={article.images[0]} alt="" />
           )}
           <div className="article-card-content">
             <h3 className="article-card-title">{article.title}</h3>
@@ -599,10 +633,30 @@ function ArticleGrid({ items, emptyText }) {
 }
 
 function ArticleDetail({ id }) {
-  const article = getArticle(id)
+  const { status, article } = useArticle(id)
+
+  if (status === 'loading') {
+    return (
+      <SectionFrame title="衛教文章" intro="文章載入中…">
+        <p className="empty-note" role="status">請稍候。</p>
+      </SectionFrame>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <SectionFrame title="文章暫時無法載入" intro="請稍後再試，或先回到衛教目錄。">
+        <p className="empty-note" role="alert">讀取失敗，請稍後再試。</p>
+        <button type="button" className="back-button" onClick={() => go('/articles/latest')}>
+          ← 返回衛教文章
+        </button>
+      </SectionFrame>
+    )
+  }
+
   if (!article) {
     return (
-      <SectionFrame title="找不到文章" intro="這篇文章可能已移動。請回到衛教目錄再選一次。">
+      <SectionFrame title="找不到文章" intro="這篇文章可能已移動或尚未上架。請回到衛教目錄再選一次。">
         <button type="button" className="back-button" onClick={() => go('/articles/latest')}>
           ← 返回衛教文章
         </button>
@@ -626,14 +680,14 @@ function ArticleDetail({ id }) {
               {article.images.map((src, index) => (
                 <figure key={src} className="article-figure">
                   <img
-                    src={assetUrl(src)}
+                    src={src}
                     alt={article.images.length > 1 ? `${article.title}（${index + 1}）` : article.title}
                   />
                 </figure>
               ))}
             </div>
           )}
-          {article.content ? (
+          {article.content?.length ? (
             <div className="article-content">
               {article.content.map((paragraph, index) => (
                 <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
@@ -649,11 +703,13 @@ function ArticleDetail({ id }) {
           )}
           <div className="article-footer">
             <p className="article-author">— 李如浩醫師</p>
-            <a href={article.facebookUrl} target="_blank" rel="noopener noreferrer" className="facebook-link">
-              查看 Facebook 原文 →
-            </a>
+            {article.facebookUrl && (
+              <a href={article.facebookUrl} target="_blank" rel="noopener noreferrer" className="facebook-link">
+                查看 Facebook 原文 →
+              </a>
+            )}
           </div>
-          <FacebookEmbed url={article.facebookUrl} />
+          {article.facebookUrl && <FacebookEmbed url={article.facebookUrl} />}
         </article>
       </div>
     </section>
