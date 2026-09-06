@@ -251,6 +251,98 @@
   cursor: pointer;
 }
 
+.admin-field {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.rte {
+  border: 1px solid var(--border-color);
+  background: #fff;
+}
+
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--cream);
+}
+
+.rte-btn {
+  border: 1px solid var(--border-color);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.28rem 0.5rem;
+  cursor: pointer;
+}
+
+.rte-btn.is-active,
+.rte-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--gold) 18%, #fff);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border-color));
+}
+
+.rte-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rte-select,
+.rte-color {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.rte-select select,
+.rte-color input {
+  width: auto;
+  padding: 0.2rem 0.35rem;
+}
+
+.rte-surface .ProseMirror {
+  min-height: 22rem;
+  padding: 0.9rem 1rem 1.4rem;
+  outline: none;
+  line-height: 1.8;
+}
+
+.rte-surface .ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.rte-surface .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.8rem 0;
+}
+
+.rte-surface .ProseMirror h2,
+.rte-surface .ProseMirror h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  margin: 1.2rem 0 0.6rem;
+}
+
+.rte-surface .ProseMirror ul,
+.rte-surface .ProseMirror ol {
+  padding-left: 1.4rem;
+  margin: 0.6rem 0 1rem;
+}
+
 .admin-confirm {
   position: fixed;
   inset: 0;

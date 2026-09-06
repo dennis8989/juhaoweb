@@ -20,6 +20,7 @@ import {
   specialties,
 } from './data/content.js'
 import { useArticle, usePublishedArticles } from './data/articlesRepository.js'
+import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
@@ -619,6 +620,46 @@ function ArticleGrid({ items, emptyText }) {
   )
 }
 
+function ArticleBody({ article }) {
+  const source = contentToHtml(article.content)
+  const rich = looksLikeHtml(article.content)
+  const [html, setHtml] = useState(() => (rich ? sanitizeArticleHtml(source) : ''))
+
+  useEffect(() => {
+    if (!rich) return undefined
+    let cancelled = false
+    resolveArticleHtml(source).then((resolved) => {
+      if (!cancelled) setHtml(resolved)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [rich, source])
+
+  if (rich) {
+    return <div className="article-content article-content-rich" dangerouslySetInnerHTML={{ __html: html }} />
+  }
+
+  if (article.content?.length) {
+    return (
+      <div className="article-content">
+        {article.content.map((paragraph, index) => (
+          <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <p className="article-content">
+      {article.excerpt}
+      <br />
+      <br />
+      完整圖文請見 Facebook 原文。
+    </p>
+  )
+}
+
 function ArticleDetail({ id }) {
   const { status, article } = useArticle(id)
 
@@ -662,7 +703,7 @@ function ArticleDetail({ id }) {
             <h1 className="article-title-full">{article.title}</h1>
             <p className="article-kicker">李如浩醫師 · 兒童成長發育專科</p>
           </div>
-          {article.images?.length > 0 && (
+          {article.images?.length > 0 && !htmlHasImages(contentToHtml(article.content)) && (
             <div className="article-images">
               {article.images.map((src, index) => (
                 <figure key={src} className="article-figure">
@@ -674,20 +715,7 @@ function ArticleDetail({ id }) {
               ))}
             </div>
           )}
-          {article.content?.length ? (
-            <div className="article-content">
-              {article.content.map((paragraph, index) => (
-                <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
-              ))}
-            </div>
-          ) : (
-            <p className="article-content">
-              {article.excerpt}
-              <br />
-              <br />
-              完整圖文請見 Facebook 原文。
-            </p>
-          )}
+          <ArticleBody article={article} />
           <div className="article-footer">
             <p className="article-author">— 李如浩醫師</p>
             {article.facebookUrl && (

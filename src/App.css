@@ -1566,6 +1566,57 @@ html:not([data-nav-text-custom='true']) .navbar {
   font-size: inherit;
 }
 
+.article-content-rich h2,
+.article-content-rich h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 1.8rem 0 0.8rem;
+  line-height: 1.35;
+}
+
+.article-content-rich h2 {
+  font-size: 1.45em;
+}
+
+.article-content-rich h3 {
+  font-size: 1.2em;
+}
+
+.article-content-rich ul,
+.article-content-rich ol {
+  padding-left: 1.4rem;
+  margin: 0 0 1.5rem;
+}
+
+.article-content-rich li {
+  margin-bottom: 0.45rem;
+}
+
+.article-content-rich a {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.article-content-rich img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.2rem 0 1.6rem;
+}
+
+.article-content-rich blockquote {
+  margin: 0 0 1.5rem;
+  padding: 0.2rem 0 0.2rem 1rem;
+  border-left: 3px solid var(--gold);
+  color: var(--text-secondary);
+}
+
+.article-content-rich mark {
+  background: color-mix(in srgb, var(--gold) 35%, #fff);
+  padding: 0 0.15em;
+}
+
 .article-footer {
   padding-top: 2rem;
   border-top: 1px solid var(--border-color);

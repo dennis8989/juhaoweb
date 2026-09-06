@@ -9,6 +9,7 @@ import {
 } from 'aws-amplify/auth'
 import { go } from '../lib/hash.js'
 import { isAmplifyConfigured } from '../lib/amplify.js'
+import { contentToHtml } from '../lib/articleHtml.js'
 import {
   deleteAdminArticle,
   getAdminArticle,
@@ -18,6 +19,7 @@ import {
   uploadAdminImages,
 } from '../data/adminArticles.js'
 import { articleCats, topicDirs, topicSubs } from './taxonomy.js'
+import ArticleRichText from './ArticleRichText.jsx'
 import './admin.css'
 
 function authErrorMessage(error) {
@@ -392,7 +394,7 @@ function formFromArticle(article) {
     id: article.id,
     title: article.title || '',
     excerpt: article.excerpt || '',
-    content: (article.content || []).join('\n\n'),
+    content: contentToHtml(article.content),
     facebookUrl: article.facebookUrl || '',
     dirs: article.dirs || [],
     subs: article.subs || [],
@@ -522,10 +524,15 @@ function Editor({ user, setUser, articleId }) {
             摘要
             <textarea rows={3} value={form.excerpt} onChange={(event) => patch({ excerpt: event.target.value })} />
           </label>
-          <label>
-            內文（每段一行或空一行）
-            <textarea rows={12} value={form.content} onChange={(event) => patch({ content: event.target.value })} />
-          </label>
+          <div className="admin-field">
+            <span>內文</span>
+            <ArticleRichText
+              key={form.id}
+              value={form.content}
+              onChange={(html) => patch({ content: html })}
+              disabled={busy}
+            />
+          </div>
           <label>
             Facebook 原文網址
             <input value={form.facebookUrl} onChange={(event) => patch({ facebookUrl: event.target.value })} />
@@ -597,7 +604,8 @@ function Editor({ user, setUser, articleId }) {
           </fieldset>
 
           <fieldset>
-            <legend>圖片</legend>
+            <legend>列表縮圖（選填）</legend>
+            <p className="admin-muted">公開列表用的封面。文章裡的圖請把游標放到該段，再按編輯器的「插入圖片」。</p>
             <input type="file" accept="image/*" multiple onChange={handleFiles} disabled={busy} />
             <div className="admin-thumbs">
               {form.images.map((key, index) => (

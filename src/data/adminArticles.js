@@ -1,6 +1,7 @@
 import { generateClient } from 'aws-amplify/data'
 import { uploadData } from 'aws-amplify/storage'
 import { isAmplifyConfigured } from '../lib/amplify.js'
+import { collectImageKeys, persistableHtml } from '../lib/articleHtml.js'
 import { invalidatePublishedArticles, resolveImageUrl } from './articlesRepository.js'
 
 function getClient() {
@@ -49,19 +50,22 @@ export async function getAdminArticle(id) {
   }
 }
 
+function unique(values) {
+  return [...new Set(values.filter(Boolean))]
+}
+
 function payloadFromForm(form) {
+  const html = persistableHtml(form.content)
+  const inlineKeys = collectImageKeys(html)
   return {
     title: form.title.trim(),
     excerpt: form.excerpt.trim() || null,
-    content: form.content
-      .split(/\n+/)
-      .map((line) => line.trim())
-      .filter(Boolean),
+    content: [html],
     facebookUrl: form.facebookUrl.trim() || null,
     dirs: form.dirs,
     subs: form.subs,
     articleCats: form.articleCats,
-    images: form.images,
+    images: unique([...(form.images || []), ...inlineKeys]),
     status: form.status,
     createdAt: form.createdAt || new Date().toISOString(),
   }
