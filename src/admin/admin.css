@@ -148,11 +148,14 @@
   vertical-align: top;
 }
 
-.admin-table th {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+.admin-table td:nth-child(2) {
+  white-space: nowrap;
   color: var(--text-muted);
-  background: var(--cream);
+  font-size: 0.9rem;
+}
+
+.admin-editor input[type='date'] {
+  max-width: 14rem;
 }
 
 .admin-status {
@@ -263,6 +266,80 @@
   background: none;
   color: #8a3b32;
   cursor: pointer;
+}
+
+.admin-tag-field {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-color);
+  background: #fff;
+}
+
+.admin-tag-input.is-disabled {
+  opacity: 0.55;
+}
+
+.admin-tag-input input {
+  flex: 1 1 8rem;
+  min-width: 8rem;
+  width: auto !important;
+  border: none !important;
+  padding: 0.3rem 0.25rem !important;
+  box-shadow: none;
+}
+
+.admin-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--border-color));
+  background: color-mix(in srgb, var(--gold) 12%, #fff);
+  color: var(--ink);
+  padding: 0.2rem 0.55rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-tag span {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.admin-tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-tag-suggest {
+  border: 1px dashed var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.18rem 0.55rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.admin-tag-suggest:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.admin-tag-suggest.is-selected,
+.admin-tag-suggest:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .admin-field {

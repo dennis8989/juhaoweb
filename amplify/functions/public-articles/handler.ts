@@ -47,6 +47,7 @@ function toArticle(item: Record<string, unknown> | undefined) {
     subs: item.subs ?? null,
     articleCats: item.articleCats ?? null,
     images: item.images ?? null,
+    tags: item.tags ?? null,
     status: item.status,
     createdAt: item.createdAt ?? null,
     updatedAt: item.updatedAt ?? null,

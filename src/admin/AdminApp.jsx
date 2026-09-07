@@ -7,6 +7,8 @@ import {
   signIn,
 } from 'aws-amplify/auth'
 import { go } from '../lib/hash.js'
+import { formatArticleDate, toDateInputValue } from '../lib/dates.js'
+import { addTags, articleTags } from '../lib/tags.js'
 import { isAmplifyConfigured } from '../lib/amplify.js'
 import { contentToHtml } from '../lib/articleHtml.js'
 import {
@@ -17,7 +19,7 @@ import {
   saveAdminArticle,
   uploadAdminImages,
 } from '../data/adminArticles.js'
-import { articleCats, topicDirs, topicSubs } from './taxonomy.js'
+import { articleCats, suggestedTags, topicDirs, topicSubs } from './taxonomy.js'
 import ArticleRichText from './ArticleRichText.jsx'
 import './admin.css'
 
@@ -296,6 +298,7 @@ function ArticleIndex({ user }) {
             <thead>
               <tr>
                 <th>標題</th>
+                <th>日期</th>
                 <th>狀態</th>
                 <th>分類</th>
                 <th />
@@ -308,10 +311,16 @@ function ArticleIndex({ user }) {
                     <strong>{article.title}</strong>
                     <div className="admin-muted">{article.id}</div>
                   </td>
+                  <td>{formatArticleDate(article.createdAt) || '—'}</td>
                   <td>
                     <span className={`admin-status ${article.status}`}>{article.status === 'published' ? '上架' : '下架'}</span>
                   </td>
-                  <td>{(article.articleCats || []).join('、') || '—'}</td>
+                  <td>
+                    {(article.articleCats || []).join('、') || '—'}
+                    {articleTags(article).length > 0 && (
+                      <div className="admin-muted">{articleTags(article).join('、')}</div>
+                    )}
+                  </td>
                   <td className="admin-row-actions">
                     <button type="button" onClick={() => go(`/admin/edit/${article.id}`)}>編輯</button>
                     {article.status === 'published' && (
@@ -354,8 +363,9 @@ function emptyForm() {
     articleCats: [],
     images: [],
     previewImages: [],
+    tags: [],
     status: 'draft',
-    createdAt: '',
+    createdAt: toDateInputValue(new Date()),
   }
 }
 
@@ -372,13 +382,83 @@ function formFromArticle(article) {
     articleCats: article.articleCats || [],
     images: article.images || [],
     previewImages: article.previewImages || [],
+    tags: articleTags(article),
     status: article.status || 'draft',
-    createdAt: article.createdAt || '',
+    createdAt: toDateInputValue(article.createdAt) || toDateInputValue(new Date()),
   }
 }
 
 function toggleValue(list, value) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value]
+}
+
+function TagInput({ value, onChange, disabled }) {
+  const [draft, setDraft] = useState('')
+
+  function commit(raw) {
+    const next = addTags(value, raw)
+    onChange(next)
+    setDraft('')
+  }
+
+  return (
+    <div className="admin-tag-field">
+      <div className={`admin-tag-input${disabled ? ' is-disabled' : ''}`}>
+        {value.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            className="admin-tag"
+            disabled={disabled}
+            onClick={() => onChange(value.filter((item) => item !== tag))}
+          >
+            {tag}
+            <span aria-hidden="true">×</span>
+          </button>
+        ))}
+        <input
+          value={draft}
+          disabled={disabled}
+          placeholder={value.length ? '繼續新增…' : '輸入標籤，按 Enter 或逗號'}
+          onChange={(event) => {
+            const raw = event.target.value
+            if (/[，,]/.test(raw)) {
+              commit(raw)
+              return
+            }
+            setDraft(raw)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              commit(draft)
+            } else if (event.key === 'Backspace' && !draft && value.length) {
+              onChange(value.slice(0, -1))
+            }
+          }}
+          onBlur={() => {
+            if (draft.trim()) commit(draft)
+          }}
+        />
+      </div>
+      <div className="admin-tag-suggestions">
+        {suggestedTags.map((tag) => {
+          const selected = value.includes(tag)
+          return (
+            <button
+              key={tag}
+              type="button"
+              className={`admin-tag-suggest${selected ? ' is-selected' : ''}`}
+              disabled={disabled || selected}
+              onClick={() => onChange(addTags(value, tag))}
+            >
+              {tag}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function Editor({ user, articleId }) {
@@ -505,6 +585,16 @@ function Editor({ user, articleId }) {
             />
           </div>
           <label>
+            文章日期
+            <input
+              type="date"
+              value={form.createdAt}
+              onChange={(event) => patch({ createdAt: event.target.value })}
+              required
+            />
+            <span className="admin-muted">會顯示在公開列表與文章頁，可填原本在 Facebook 發布的日期。</span>
+          </label>
+          <label>
             Facebook 原文網址
             <input value={form.facebookUrl} onChange={(event) => patch({ facebookUrl: event.target.value })} />
           </label>
@@ -585,6 +675,16 @@ function Editor({ user, articleId }) {
                 </label>
               ))}
             </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>標籤</legend>
+            <p className="admin-muted">會顯示在公開列表與文章頁。可自訂，或點常用標籤快速加入。</p>
+            <TagInput
+              value={form.tags}
+              onChange={(tags) => patch({ tags })}
+              disabled={busy}
+            />
           </fieldset>
 
           <fieldset>

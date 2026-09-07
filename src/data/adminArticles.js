@@ -2,6 +2,8 @@ import { generateClient } from 'aws-amplify/data'
 import { uploadData } from 'aws-amplify/storage'
 import { isAmplifyConfigured } from '../lib/amplify.js'
 import { collectImageKeys, persistableHtml } from '../lib/articleHtml.js'
+import { fromDateInputValue } from '../lib/dates.js'
+import { addTags } from '../lib/tags.js'
 import { invalidatePublishedArticles, resolveImageUrl } from './articlesRepository.js'
 
 function getClient() {
@@ -66,9 +68,14 @@ function payloadFromForm(form) {
     subs: form.subs,
     articleCats: form.articleCats,
     images: unique([...(form.images || []), ...inlineKeys]),
+    tags: addTags([], form.tags),
     status: form.status,
-    createdAt: form.createdAt || new Date().toISOString(),
+    createdAt: fromDateInputValue(form.createdAt),
   }
+}
+
+function isUnknownTagsField(errors) {
+  return (errors || []).some((error) => /\btags\b/i.test(String(error.message || '')))
 }
 
 export async function saveAdminArticle(form) {
@@ -76,20 +83,24 @@ export async function saveAdminArticle(form) {
   const input = payloadFromForm(form)
   if (!input.title) throw new Error('請填寫標題')
 
-  if (form.isNew) {
-    const { data, errors } = await client.models.Article.create({
+  async function write(payload) {
+    if (form.isNew) {
+      return client.models.Article.create({
+        id: form.id,
+        ...payload,
+      })
+    }
+    return client.models.Article.update({
       id: form.id,
-      ...input,
+      ...payload,
     })
-    throwIfErrors(errors)
-    invalidatePublishedArticles()
-    return data
   }
 
-  const { data, errors } = await client.models.Article.update({
-    id: form.id,
-    ...input,
-  })
+  let { data, errors } = await write(input)
+  if (isUnknownTagsField(errors) && 'tags' in input) {
+    const { tags: _tags, ...withoutTags } = input
+    ;({ data, errors } = await write(withoutTags))
+  }
   throwIfErrors(errors)
   invalidatePublishedArticles()
   return data

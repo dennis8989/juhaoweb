@@ -14,3 +14,5 @@ export const topicSubs = Object.entries(secondLevel)
   )
 
 export const articleCats = articleMenu.filter((item) => item.id !== 'latest')
+
+export const suggestedTags = ['骨齡', '性早熟', '青春期', 'SGA', '矮小', '生長激素', '抑制針', '營養']

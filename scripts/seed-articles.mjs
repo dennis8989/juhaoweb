@@ -35,6 +35,7 @@ function toArticleItem(article, index, total) {
     subs: article.subs ?? [],
     articleCats: article.articleCats ?? [],
     images: (article.images ?? []).map(toStorageKey),
+    tags: article.tags ?? [],
     status: 'published',
     createdAt,
     updatedAt: createdAt,

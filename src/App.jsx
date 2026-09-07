@@ -4,6 +4,8 @@ import './App.css'
 import DesignTools from './DesignToggle.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import { go, parseHash } from './lib/hash.js'
+import { formatArticleDate, toDateInputValue } from './lib/dates.js'
+import { articleTags } from './lib/tags.js'
 import { isAmplifyConfigured } from './lib/amplify.js'
 import {
   APPOINTMENT_URL,
@@ -27,6 +29,28 @@ import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, saniti
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
+
+function ArticleDate({ value, className }) {
+  const label = formatArticleDate(value)
+  if (!label) return null
+  return (
+    <time className={className} dateTime={toDateInputValue(value)}>
+      {label}
+    </time>
+  )
+}
+
+function ArticleTags({ article, className, itemClassName }) {
+  const tags = articleTags(article)
+  if (!tags.length) return null
+  return (
+    <ul className={className}>
+      {tags.map((tag) => (
+        <li key={tag} className={itemClassName}>{tag}</li>
+      ))}
+    </ul>
+  )
+}
 
 function App() {
   const [route, setRoute] = useState(parseHash)
@@ -104,6 +128,7 @@ function App() {
       activeSub={activeSub}
       activeView={route.view}
       user={user}
+      articleId={route.view === 'article' ? route.sub : null}
       onSignOut={async () => {
         await signOut()
         setUser(null)
@@ -159,7 +184,7 @@ function App() {
   )
 }
 
-function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView, user, onSignOut }) {
+function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView, user, articleId, onSignOut }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -321,15 +346,30 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
             </ul>
           </li>
           {user && (
-            <li>
-              <button
-                type="button"
-                className="nav-drop-btn nav-appointment-link"
-                onClick={onSignOut}
-              >
-                登出
-              </button>
-            </li>
+            <>
+              <li>
+                <a
+                  href={articleId ? `#/admin/edit/${articleId}` : '#/admin'}
+                  className={`nav-appointment-link ${activeView === 'admin' ? 'active' : ''}`}
+                  aria-current={activeView === 'admin' ? 'page' : undefined}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    go(articleId ? `/admin/edit/${articleId}` : '/admin')
+                  }}
+                >
+                  文章編輯
+                </a>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="nav-drop-btn"
+                  onClick={onSignOut}
+                >
+                  登出
+                </button>
+              </li>
+            </>
           )}
         </ul>
       </nav>
@@ -658,8 +698,10 @@ function ArticleGrid({ items, emptyText }) {
             <img className="article-card-thumb" src={article.images[0]} alt="" />
           )}
           <div className="article-card-content">
+            <ArticleDate value={article.createdAt} className="article-card-date" />
             <h3 className="article-card-title">{article.title}</h3>
             <p className="article-card-excerpt">{article.excerpt}</p>
+            <ArticleTags article={article} className="article-card-tags" itemClassName="article-tag" />
             <span className="read-more">閱讀全文</span>
           </div>
         </a>
@@ -749,7 +791,11 @@ function ArticleDetail({ id }) {
         <article className="article-full">
           <div className="article-header">
             <h1 className="article-title-full">{article.title}</h1>
-            <p className="article-kicker">李如浩醫師 · 兒童成長發育專科</p>
+            <div className="article-meta">
+              <ArticleDate value={article.createdAt} className="article-date" />
+              <p className="article-kicker">李如浩醫師 · 兒童成長發育專科</p>
+            </div>
+            <ArticleTags article={article} className="article-tags" itemClassName="tag" />
           </div>
           {article.images?.length > 0 && !htmlHasImages(contentToHtml(article.content)) && (
             <div className="article-images">

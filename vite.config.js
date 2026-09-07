@@ -12,6 +12,9 @@ function amplifyOutputsPlugin() {
   const resolvedId = `\0${virtualId}`
   return {
     name: 'amplify-outputs',
+    buildStart() {
+      this.addWatchFile(outputsPath)
+    },
     resolveId(id) {
       if (id === virtualId) return resolvedId
     },

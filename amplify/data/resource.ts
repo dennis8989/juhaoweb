@@ -14,6 +14,7 @@ const schema = a.schema({
     subs: a.string().array(),
     articleCats: a.string().array(),
     images: a.string().array(),
+    tags: a.string().array(),
     status: a.string().required(),
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
@@ -34,6 +35,7 @@ const schema = a.schema({
       subs: a.string().array(),
       articleCats: a.string().array(),
       images: a.string().array(),
+      tags: a.string().array(),
       status: a.ref('ArticleStatus').required(),
       createdAt: a.datetime(),
     })
