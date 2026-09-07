@@ -5,7 +5,18 @@ backend:
       commands:
         - nvm use 20 || nvm install 20
         - npm install --cache .npm --prefer-offline --no-audit --no-fund
-        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+        - echo "AWS_BRANCH=$AWS_BRANCH"
+        - |
+          case "${AWS_BRANCH}" in
+            amplify)
+              echo "Production branch: deploying backend..."
+              npx ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID"
+              ;;
+            *)
+              echo "Sharing existing amplify backend..."
+              npx ampx generate outputs --branch amplify --app-id "$AWS_APP_ID"
+              ;;
+          esac
 frontend:
   phases:
     build:
