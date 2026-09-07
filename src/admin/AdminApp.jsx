@@ -5,7 +5,6 @@ import {
   getCurrentUser,
   resetPassword,
   signIn,
-  signOut,
 } from 'aws-amplify/auth'
 import { go } from '../lib/hash.js'
 import { isAmplifyConfigured } from '../lib/amplify.js'
@@ -39,23 +38,7 @@ function authErrorMessage(error) {
   return '目前無法完成操作，請稍後再試。'
 }
 
-export default function AdminApp({ route }) {
-  const [user, setUser] = useState(undefined)
-
-  useEffect(() => {
-    let cancelled = false
-    getCurrentUser()
-      .then((current) => {
-        if (!cancelled) setUser(current)
-      })
-      .catch(() => {
-        if (!cancelled) setUser(null)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
+export default function AdminApp({ route, user, setUser }) {
   if (!isAmplifyConfigured()) {
     return (
       <div className="admin-shell">
@@ -78,21 +61,15 @@ export default function AdminApp({ route }) {
   }
 
   if (route.sub === 'new') {
-    return <Editor user={user} setUser={setUser} />
+    return <Editor user={user} />
   }
   if (route.sub === 'edit' && route.extra) {
-    return <Editor user={user} setUser={setUser} articleId={route.extra} />
+    return <Editor user={user} articleId={route.extra} />
   }
-  return <ArticleIndex user={user} setUser={setUser} />
+  return <ArticleIndex user={user} />
 }
 
-function AdminBar({ user, setUser, title }) {
-  async function handleSignOut() {
-    await signOut()
-    setUser(null)
-    go('/admin')
-  }
-
+function AdminBar({ user, title }) {
   return (
     <header className="admin-bar">
       <div>
@@ -101,12 +78,6 @@ function AdminBar({ user, setUser, title }) {
       </div>
       <div className="admin-bar-actions">
         <span className="admin-user">{user?.signInDetails?.loginId || user?.username}</span>
-        <button type="button" className="btn-ghost" onClick={() => go('/articles/latest')}>
-          看公開站
-        </button>
-        <button type="button" className="btn-ghost" onClick={handleSignOut}>
-          登出
-        </button>
       </div>
     </header>
   )
@@ -278,7 +249,7 @@ function ForgotForm() {
   )
 }
 
-function ArticleIndex({ user, setUser }) {
+function ArticleIndex({ user }) {
   const [state, setState] = useState({ status: 'loading', items: [], error: '' })
   const [pendingDelete, setPendingDelete] = useState(null)
 
@@ -309,7 +280,7 @@ function ArticleIndex({ user, setUser }) {
 
   return (
     <div className="admin-shell">
-      <AdminBar user={user} setUser={setUser} title="文章列表" />
+      <AdminBar user={user} title="文章列表" />
       <div className="admin-toolbar">
         <p>共 {state.items.length} 篇。下架文只在後台看得到。</p>
         <button type="button" className="btn-primary" onClick={() => go('/admin/new')}>
@@ -410,7 +381,7 @@ function toggleValue(list, value) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value]
 }
 
-function Editor({ user, setUser, articleId }) {
+function Editor({ user, articleId }) {
   const [form, setForm] = useState(emptyForm)
   const [status, setStatus] = useState(articleId ? 'loading' : 'ready')
   const [error, setError] = useState('')
@@ -498,7 +469,7 @@ function Editor({ user, setUser, articleId }) {
 
   return (
     <div className="admin-shell">
-      <AdminBar user={user} setUser={setUser} title={form.isNew ? '新增文章' : '編輯文章'} />
+      <AdminBar user={user} title={form.isNew ? '新增文章' : '編輯文章'} />
       <div className="admin-toolbar">
         <button type="button" className="btn-ghost" onClick={() => go('/admin')}>← 回到列表</button>
       </div>
@@ -558,7 +529,16 @@ function Editor({ user, setUser, articleId }) {
                   <input
                     type="checkbox"
                     checked={form.dirs.includes(dir.id)}
-                    onChange={() => patch({ dirs: toggleValue(form.dirs, dir.id) })}
+                    onChange={() => {
+                      const nextDirs = toggleValue(form.dirs, dir.id)
+                      const allowed = new Set(
+                        topicSubs.filter((sub) => nextDirs.includes(sub.dir)).map((sub) => sub.id),
+                      )
+                      patch({
+                        dirs: nextDirs,
+                        subs: form.subs.filter((id) => allowed.has(id)),
+                      })
+                    }}
                   />
                   {dir.label}
                 </label>
@@ -568,23 +548,27 @@ function Editor({ user, setUser, articleId }) {
 
           <fieldset>
             <legend>第二層 subs</legend>
-            {Object.entries(groupedSubs).map(([dir, group]) => (
-              <div key={dir} className="admin-sub-group">
-                <p>{group.label}</p>
-                <div className="admin-checks">
-                  {group.items.map((sub) => (
-                    <label key={`${dir}-${sub.id}`} className="admin-check">
-                      <input
-                        type="checkbox"
-                        checked={form.subs.includes(sub.id)}
-                        onChange={() => patch({ subs: toggleValue(form.subs, sub.id) })}
-                      />
-                      {sub.label}
-                    </label>
-                  ))}
+            {Object.entries(groupedSubs).map(([dir, group]) => {
+              const enabled = form.dirs.includes(dir)
+              return (
+                <div key={dir} className={`admin-sub-group${enabled ? '' : ' is-disabled'}`}>
+                  <p>{group.label}</p>
+                  <div className="admin-checks">
+                    {group.items.map((sub) => (
+                      <label key={`${dir}-${sub.id}`} className="admin-check">
+                        <input
+                          type="checkbox"
+                          checked={form.subs.includes(sub.id)}
+                          disabled={!enabled}
+                          onChange={() => patch({ subs: toggleValue(form.subs, sub.id) })}
+                        />
+                        {sub.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </fieldset>
 
           <fieldset>

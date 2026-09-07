@@ -5,7 +5,7 @@ const ALLOWED_TAGS = [
   'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'span', 'mark',
   'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'blockquote',
 ]
-const ALLOWED_ATTR = ['href', 'target', 'rel', 'src', 'alt', 'style', 'class', 'data-s3-key']
+const ALLOWED_ATTR = ['href', 'target', 'rel', 'src', 'alt', 'style', 'class', 'width', 'height', 'data-s3-key']
 
 export function looksLikeHtml(content) {
   const blocks = Array.isArray(content) ? content : [content]
@@ -46,6 +46,12 @@ export function persistableHtml(html) {
     if (key) {
       img.setAttribute('data-s3-key', key)
       img.setAttribute('src', key)
+    }
+    const width = parseInt(img.getAttribute('width') || img.style.width, 10)
+    if (Number.isFinite(width) && width > 0) {
+      img.setAttribute('width', String(width))
+      img.style.width = `${width}px`
+      img.style.height = 'auto'
     }
   })
   return holder.innerHTML

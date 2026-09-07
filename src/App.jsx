@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
 import DesignTools from './DesignToggle.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import { go, parseHash } from './lib/hash.js'
+import { isAmplifyConfigured } from './lib/amplify.js'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
@@ -30,6 +32,25 @@ function App() {
   const [route, setRoute] = useState(parseHash)
   const [menuOpen, setMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null)
+  const [user, setUser] = useState(undefined)
+
+  useEffect(() => {
+    if (!isAmplifyConfigured()) {
+      setUser(null)
+      return undefined
+    }
+    let cancelled = false
+    getCurrentUser()
+      .then((current) => {
+        if (!cancelled) setUser(current)
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!window.location.hash) {
@@ -64,7 +85,7 @@ function App() {
     if (route.view === 'article') {
       return articleState.article?.dirs?.[0] || 'about'
     }
-    if (route.view === 'collaborate') return ''
+    if (route.view === 'collaborate' || route.view === 'admin') return ''
     return directoryItems.some((item) => item.id === route.view) ? route.view : 'about'
   }, [route, articleState.article])
 
@@ -73,21 +94,37 @@ function App() {
   const isTopicPage = directoryItems.some((item) => item.id === route.view && item.id !== 'about')
   const topicMeta = isTopicPage ? getSectionMeta(route.view, route.sub) : null
 
+  const navbar = (
+    <Navbar
+      menuOpen={menuOpen}
+      setMenuOpen={setMenuOpen}
+      openDropdown={openDropdown}
+      setOpenDropdown={setOpenDropdown}
+      activeDir={activeDir}
+      activeSub={activeSub}
+      activeView={route.view}
+      user={user}
+      onSignOut={async () => {
+        await signOut()
+        setUser(null)
+        setMenuOpen(false)
+        if (parseHash().view === 'admin') go('/admin')
+      }}
+    />
+  )
+
   if (route.view === 'admin') {
-    return <AdminApp route={route} />
+    return (
+      <div className="app">
+        {navbar}
+        <AdminApp route={route} user={user} setUser={setUser} />
+      </div>
+    )
   }
 
   return (
     <div className="app">
-      <Navbar
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        openDropdown={openDropdown}
-        setOpenDropdown={setOpenDropdown}
-        activeDir={activeDir}
-        activeSub={activeSub}
-        activeView={route.view}
-      />
+      {navbar}
       <main className={`page ${route.view === 'about' ? 'page-about' : ''} ${isTopicPage ? 'page-topic' : ''}`}>
         {isTopicPage && (
           <TopicHero
@@ -122,7 +159,7 @@ function App() {
   )
 }
 
-function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView }) {
+function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDir, activeSub, activeView, user, onSignOut }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -283,6 +320,17 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
               </li>
             </ul>
           </li>
+          {user && (
+            <li>
+              <button
+                type="button"
+                className="nav-drop-btn nav-appointment-link"
+                onClick={onSignOut}
+              >
+                登出
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

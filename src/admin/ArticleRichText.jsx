@@ -7,10 +7,19 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TextStyle from '@tiptap/extension-text-style'
 import Underline from '@tiptap/extension-underline'
-import { EditorContent, useEditor } from '@tiptap/react'
+import { EditorContent, NodeViewWrapper, ReactNodeViewRenderer, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { uploadAdminImages } from '../data/adminArticles.js'
 import { persistableHtml, resolveArticleHtml } from '../lib/articleHtml.js'
+
+const DEFAULT_FONT_SIZE = '17px'
+const FONT_SIZES = ['14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
+const FONT_FAMILIES = [
+  { id: 'sans', label: '黑體 GenSen', value: 'var(--font-sans)' },
+  { id: 'serif', label: '明體 GenRyu', value: 'var(--font-serif)' },
+  { id: 'hand', label: '手寫 芫荽', value: 'var(--font-hand)' },
+]
+const DEFAULT_FONT = FONT_FAMILIES[0]
 
 const FontSize = Extension.create({
   name: 'fontSize',
@@ -48,6 +57,112 @@ const FontSize = Extension.create({
   },
 })
 
+const FontFamily = Extension.create({
+  name: 'fontFamily',
+  addOptions() {
+    return { types: ['textStyle'] }
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontFamily: {
+            default: null,
+            parseHTML: (element) => element.style.fontFamily || null,
+            renderHTML: (attributes) => {
+              if (!attributes.fontFamily) return {}
+              return { style: `font-family: ${attributes.fontFamily}` }
+            },
+          },
+        },
+      },
+    ]
+  },
+  addCommands() {
+    return {
+      setFontFamily:
+        (fontFamily) =>
+        ({ chain }) =>
+          chain().focus().setMark('textStyle', { fontFamily }).run(),
+      unsetFontFamily:
+        () =>
+        ({ chain }) =>
+          chain().focus().setMark('textStyle', { fontFamily: null }).removeEmptyTextStyle().run(),
+    }
+  },
+})
+
+function parseWidth(element) {
+  const attr = element.getAttribute('width')
+  if (attr) {
+    const n = parseInt(attr, 10)
+    return Number.isFinite(n) ? n : null
+  }
+  const styleW = element.style.width
+  if (styleW) {
+    const n = parseInt(styleW, 10)
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+function ResizableImageView({ node, updateAttributes, selected }) {
+  const imgRef = useRef(null)
+  const dragRef = useRef(null)
+  const width = node.attrs.width ? Number(node.attrs.width) : null
+
+  function startResize(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    const startX = event.clientX
+    const startWidth = imgRef.current?.getBoundingClientRect().width || 240
+    dragRef.current = { startX, startWidth }
+
+    function onMove(moveEvent) {
+      if (!dragRef.current || !imgRef.current) return
+      const editorWidth = imgRef.current.closest('.ProseMirror')?.clientWidth || 800
+      const next = Math.round(dragRef.current.startWidth + (moveEvent.clientX - dragRef.current.startX))
+      imgRef.current.style.width = `${Math.min(editorWidth, Math.max(80, next))}px`
+    }
+
+    function onUp(upEvent) {
+      if (dragRef.current && imgRef.current) {
+        const editorWidth = imgRef.current.closest('.ProseMirror')?.clientWidth || 800
+        const next = Math.round(dragRef.current.startWidth + (upEvent.clientX - dragRef.current.startX))
+        updateAttributes({ width: Math.min(editorWidth, Math.max(80, next)) })
+      }
+      dragRef.current = null
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+
+  return (
+    <NodeViewWrapper className={`rte-image-wrap${selected ? ' is-selected' : ''}`}>
+      <img
+        ref={imgRef}
+        src={node.attrs.src}
+        alt={node.attrs.alt || ''}
+        data-s3-key={node.attrs['data-s3-key'] || undefined}
+        style={{ width: width ? `${width}px` : undefined, height: 'auto', maxWidth: '100%' }}
+      />
+      {selected && (
+        <button
+          type="button"
+          className="rte-image-handle"
+          aria-label="拖曳調整圖片大小"
+          onPointerDown={startResize}
+          onMouseDown={(event) => event.preventDefault()}
+        />
+      )}
+    </NodeViewWrapper>
+  )
+}
+
 const ArticleImage = Image.extend({
   addAttributes() {
     return {
@@ -60,7 +175,21 @@ const ArticleImage = Image.extend({
           return { 'data-s3-key': attributes['data-s3-key'] }
         },
       },
+      width: {
+        default: null,
+        parseHTML: parseWidth,
+        renderHTML: (attributes) => {
+          if (!attributes.width) return {}
+          return {
+            width: String(attributes.width),
+            style: `width: ${attributes.width}px; height: auto;`,
+          }
+        },
+      },
     }
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(ResizableImageView)
   },
 })
 
@@ -78,6 +207,17 @@ function ToolbarButton({ active, disabled, onClick, children }) {
   )
 }
 
+function currentFontValue(editor) {
+  const raw = String(editor.getAttributes('textStyle').fontFamily || '').toLowerCase()
+  if (raw.includes('iansui') || raw.includes('--font-hand')) return FONT_FAMILIES[2].value
+  if (raw.includes('genryu') || raw.includes('--font-serif')) return FONT_FAMILIES[1].value
+  return DEFAULT_FONT.value
+}
+
+function currentFontSize(editor) {
+  return editor.getAttributes('textStyle').fontSize || DEFAULT_FONT_SIZE
+}
+
 export default function ArticleRichText({ value, onChange, disabled }) {
   const fileRef = useRef(null)
   const loadedRef = useRef(false)
@@ -88,6 +228,7 @@ export default function ArticleRichText({ value, onChange, disabled }) {
       Underline,
       TextStyle,
       FontSize,
+      FontFamily,
       Color,
       Highlight.configure({ multicolor: true }),
       Link.configure({
@@ -96,7 +237,7 @@ export default function ArticleRichText({ value, onChange, disabled }) {
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
       ArticleImage.configure({ inline: false, allowBase64: false }),
-      Placeholder.configure({ placeholder: '在這裡寫內文。先選字再設粗體、顏色或字級；游標放在要插入圖片的段落再按「插入圖片」。' }),
+      Placeholder.configure({ placeholder: '在這裡寫內文。先選字再設粗體、顏色、字型或字級；點選圖片後可拖右下角調整大小。' }),
     ],
     content: value || '<p></p>',
     editable: !disabled,
@@ -152,6 +293,11 @@ export default function ArticleRichText({ value, onChange, disabled }) {
     editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
   }
 
+  const sizeOptions = FONT_SIZES.includes(currentFontSize(editor))
+    ? FONT_SIZES
+    : [currentFontSize(editor), ...FONT_SIZES]
+  const imageWidth = editor.getAttributes('image').width || ''
+
   return (
     <div className="rte">
       <div className="rte-toolbar" role="toolbar" aria-label="文章格式">
@@ -164,20 +310,33 @@ export default function ArticleRichText({ value, onChange, disabled }) {
         <ToolbarButton active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}>項目</ToolbarButton>
         <ToolbarButton active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>編號</ToolbarButton>
         <label className="rte-select">
+          字型
+          <select
+            value={currentFontValue(editor)}
+            onChange={(event) => {
+              const next = event.target.value
+              if (next === DEFAULT_FONT.value) editor.chain().focus().unsetFontFamily().run()
+              else editor.chain().focus().setFontFamily(next).run()
+            }}
+          >
+            {FONT_FAMILIES.map((item) => (
+              <option key={item.id} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="rte-select">
           字級
           <select
-            value={editor.getAttributes('textStyle').fontSize || ''}
+            value={currentFontSize(editor)}
             onChange={(event) => {
               const size = event.target.value
-              if (!size) editor.chain().focus().unsetFontSize().run()
+              if (size === DEFAULT_FONT_SIZE) editor.chain().focus().unsetFontSize().run()
               else editor.chain().focus().setFontSize(size).run()
             }}
           >
-            <option value="">內文</option>
-            <option value="0.9em">較小</option>
-            <option value="1.15em">稍大</option>
-            <option value="1.35em">大</option>
-            <option value="1.6em">特大</option>
+            {sizeOptions.map((size) => (
+              <option key={size} value={size}>{size}</option>
+            ))}
           </select>
         </label>
         <label className="rte-color">
@@ -198,6 +357,25 @@ export default function ArticleRichText({ value, onChange, disabled }) {
         </label>
         <ToolbarButton active={editor.isActive('link')} onClick={setLink}>連結</ToolbarButton>
         <ToolbarButton disabled={disabled} onClick={() => fileRef.current?.click()}>插入圖片</ToolbarButton>
+        {editor.isActive('image') && (
+          <label className="rte-select">
+            寬度
+            <input
+              type="number"
+              min="80"
+              step="10"
+              value={imageWidth}
+              placeholder="自動"
+              onChange={(event) => {
+                const n = parseInt(event.target.value, 10)
+                editor.chain().focus().updateAttributes('image', {
+                  width: Number.isFinite(n) && n > 0 ? n : null,
+                }).run()
+              }}
+            />
+            px
+          </label>
+        )}
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()}>復原</ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().redo().run()}>重做</ToolbarButton>
       </div>

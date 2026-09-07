@@ -1601,6 +1601,7 @@ html:not([data-nav-text-custom='true']) .navbar {
 .article-content-rich img {
   max-width: 100%;
   height: auto;
+  width: auto;
   display: block;
   margin: 1.2rem 0 1.6rem;
 }
