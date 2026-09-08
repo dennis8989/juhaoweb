@@ -49,6 +49,7 @@
 
 .admin-bar-actions,
 .admin-toolbar,
+.admin-toolbar-actions,
 .admin-row-actions,
 .admin-confirm-actions,
 .admin-editor-actions {
@@ -475,6 +476,46 @@
   padding: 1rem;
 }
 
+.admin-list-editor {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-list-row,
+.admin-specialty-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border-color);
+  background: #fff;
+}
+
+.admin-list-row {
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+}
+
+.admin-specialty-row {
+  grid-template-columns: 1fr;
+}
+
+.admin-list-row .danger,
+.admin-specialty-row .danger {
+  justify-self: start;
+  background: none;
+  border: none;
+  color: #8a3b32;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+@media (max-width: 720px) {
+  .admin-list-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .admin-bar,
   .admin-toolbar {
@@ -482,3 +523,83 @@
     align-items: flex-start;
   }
 }
+
+.admin-topic-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 0 1.2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-topic-card:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.admin-topic-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.admin-topic-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.admin-topic-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  gap: 1rem 1.2rem;
+  align-items: start;
+}
+
+.admin-topic-image {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.admin-topic-preview {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-topic-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-topic-upload {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.admin-topic-fields {
+  display: grid;
+  gap: 0.7rem;
+}
+
+@media (max-width: 720px) {
+  .admin-topic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { generateClient } from 'aws-amplify/data'
 import { getUrl } from 'aws-amplify/storage'
 import { isAmplifyConfigured } from '../lib/amplify.js'
+import { isSitePageId } from './sitePages.js'
 
 const IMAGE_CACHE = new Map()
 let listCache = null
@@ -82,7 +83,7 @@ async function fetchAllPublished() {
     nextToken = page?.nextToken ?? null
   } while (nextToken)
 
-  const published = collected.filter((item) => item.status === 'published')
+  const published = collected.filter((item) => item.status === 'published' && !isSitePageId(item.id))
   return Promise.all(published.map(withResolvedImages))
 }
 
@@ -124,7 +125,7 @@ export async function getArticle(id) {
 }
 
 export function matchesFilter(article, { dir, sub, articleCat } = {}) {
-  if (!article || article.status !== 'published') return false
+  if (!article || article.status !== 'published' || isSitePageId(article.id)) return false
   if (dir && !(article.dirs || []).includes(dir)) return false
   if (sub && !(article.subs || []).includes(sub)) return false
   if (articleCat && articleCat !== 'latest' && !(article.articleCats || []).includes(articleCat)) {
@@ -193,4 +194,24 @@ export function useArticle(id) {
   }, [id])
 
   return state
+}
+
+export function useResolvedImage(src) {
+  const [href, setHref] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    if (!src) {
+      setHref('')
+      return undefined
+    }
+    resolveImageUrl(src).then((next) => {
+      if (!cancelled) setHref(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [src])
+
+  return href
 }

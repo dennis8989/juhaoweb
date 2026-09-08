@@ -218,7 +218,7 @@ function currentFontSize(editor) {
   return editor.getAttributes('textStyle').fontSize || DEFAULT_FONT_SIZE
 }
 
-export default function ArticleRichText({ value, onChange, disabled }) {
+export default function ArticleRichText({ value, onChange, disabled, placeholder = '在這裡寫內文。先選字再設粗體、顏色、字型或字級；點選圖片後可拖右下角調整大小。' }) {
   const fileRef = useRef(null)
   const loadedRef = useRef(false)
 
@@ -237,7 +237,7 @@ export default function ArticleRichText({ value, onChange, disabled }) {
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
       ArticleImage.configure({ inline: false, allowBase64: false }),
-      Placeholder.configure({ placeholder: '在這裡寫內文。先選字再設粗體、顏色、字型或字級；點選圖片後可拖右下角調整大小。' }),
+      Placeholder.configure({ placeholder }),
     ],
     content: value || '<p></p>',
     editable: !disabled,
@@ -356,6 +356,7 @@ export default function ArticleRichText({ value, onChange, disabled }) {
           />
         </label>
         <ToolbarButton active={editor.isActive('link')} onClick={setLink}>連結</ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()}>分隔線</ToolbarButton>
         <ToolbarButton disabled={disabled} onClick={() => fileRef.current?.click()}>插入圖片</ToolbarButton>
         {editor.isActive('image') && (
           <label className="rte-select">

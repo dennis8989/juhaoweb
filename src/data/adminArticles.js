@@ -4,6 +4,7 @@ import { isAmplifyConfigured } from '../lib/amplify.js'
 import { collectImageKeys, persistableHtml } from '../lib/articleHtml.js'
 import { fromDateInputValue } from '../lib/dates.js'
 import { addTags } from '../lib/tags.js'
+import { isSitePageId } from './sitePages.js'
 import { invalidatePublishedArticles, resolveImageUrl } from './articlesRepository.js'
 
 function getClient() {
@@ -32,9 +33,11 @@ export async function listAdminArticles() {
     nextToken = token
   } while (nextToken)
 
-  collected.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    collected.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
   return Promise.all(
-    collected.map(async (article) => ({
+    collected
+      .filter((article) => !isSitePageId(article.id))
+      .map(async (article) => ({
       ...article,
       previewImages: await Promise.all((article.images || []).map(resolveImageUrl)),
     })),
@@ -121,11 +124,11 @@ function safeFileName(name) {
     .slice(-80) || 'image.jpg'
 }
 
-export async function uploadAdminImages(fileList) {
+export async function uploadAdminImages(fileList, folder = 'articles') {
   const files = Array.from(fileList || [])
   const keys = []
   for (const file of files) {
-    const key = `public/articles/${Date.now()}-${safeFileName(file.name)}`
+    const key = `public/${folder}/${Date.now()}-${safeFileName(file.name)}`
     await uploadData({
       path: key,
       data: file,

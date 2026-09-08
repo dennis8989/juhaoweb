@@ -127,7 +127,7 @@ export const TYPE_ROLES = [
     id: 'sectionBody',
     label: '區塊內文',
     group: '共用區塊',
-    selector: '.about-story p, .cv-block li, .specialty-row span, .origin-copy .origin-lead, .origin-copy .origin-body',
+    selector: '.about-story p, .cv-block li, .specialty-row span, .origin-copy .origin-lead, .origin-copy .origin-body, .origin-copy .origin-html p',
     affects: '故事段落、履歷列表、專長說明、起源內文。同組會一起變更。',
     defaults: { family: 'sans', weight: '500', size: 18, color: '#1c1c1c' },
   },

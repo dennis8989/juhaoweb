@@ -18,10 +18,14 @@ export function parseHash() {
   }
 }
 
-export function go(path) {
+export function go(path, { replace = false } = {}) {
   const next = path.startsWith('#') ? path : `#${path.startsWith('/') ? path : `/${path}`}`
   if (window.location.hash === next) {
     window.dispatchEvent(new HashChangeEvent('hashchange'))
+    return
+  }
+  if (replace) {
+    window.location.replace(`${window.location.pathname}${window.location.search}${next}`)
     return
   }
   window.location.hash = next

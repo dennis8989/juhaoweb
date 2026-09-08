@@ -21,6 +21,9 @@ import {
 } from '../data/adminArticles.js'
 import { articleCats, suggestedTags, topicDirs, topicSubs } from './taxonomy.js'
 import ArticleRichText from './ArticleRichText.jsx'
+import AboutEditor from './AboutEditor.jsx'
+import TopicsEditor from './TopicsEditor.jsx'
+import { SITE_ABOUT_ID, SITE_TOPICS_ID } from '../data/sitePages.js'
 import './admin.css'
 
 function authErrorMessage(error) {
@@ -62,6 +65,12 @@ export default function AdminApp({ route, user, setUser }) {
     return <LoginForm onSignedIn={setUser} />
   }
 
+  if (route.sub === 'about' || (route.sub === 'edit' && route.extra === SITE_ABOUT_ID)) {
+    return <AboutEditor user={user} AdminBar={AdminBar} authErrorMessage={authErrorMessage} />
+  }
+  if (route.sub === 'topics' || (route.sub === 'edit' && route.extra === SITE_TOPICS_ID)) {
+    return <TopicsEditor user={user} AdminBar={AdminBar} authErrorMessage={authErrorMessage} />
+  }
   if (route.sub === 'new') {
     return <Editor user={user} />
   }
@@ -285,9 +294,17 @@ function ArticleIndex({ user }) {
       <AdminBar user={user} title="文章列表" />
       <div className="admin-toolbar">
         <p>共 {state.items.length} 篇。下架文只在後台看得到。</p>
-        <button type="button" className="btn-primary" onClick={() => go('/admin/new')}>
-          新增文章
-        </button>
+        <div className="admin-toolbar-actions">
+          <button type="button" className="btn-ghost" onClick={() => go('/admin/about')}>
+            關於我編輯
+          </button>
+          <button type="button" className="btn-ghost" onClick={() => go('/admin/topics')}>
+            主題頁編輯
+          </button>
+          <button type="button" className="btn-primary" onClick={() => go('/admin/new')}>
+            新增文章
+          </button>
+        </div>
       </div>
       {state.error && <p className="admin-error" role="alert">{state.error}</p>}
       {state.status === 'loading' && <p className="admin-note">載入中…</p>}

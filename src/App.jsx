@@ -12,18 +12,16 @@ import {
   FACEBOOK_PAGE_URL,
   INSTAGRAM_URL,
   clinicLocations,
-  aboutProfile,
-  aboutStory,
-  aboutOrigin,
   articleMenu,
   caseMenu,
   casePages,
   directoryItems,
-  getSectionMeta,
+  firstNavChild,
   secondLevel,
-  specialties,
 } from './data/content.js'
-import { useArticle, usePublishedArticles } from './data/articlesRepository.js'
+import { useAboutPage } from './data/aboutPage.js'
+import { useSectionMeta } from './data/topicsPage.js'
+import { useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
@@ -90,6 +88,13 @@ function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  useEffect(() => {
+    const first = firstNavChild(route.view)
+    if (first && !route.sub) {
+      go(first.path, { replace: true })
+    }
+  }, [route.view, route.sub])
+
   const articleState = useArticle(route.view === 'article' ? route.sub : null)
 
   const activeDir = useMemo(() => {
@@ -116,7 +121,7 @@ function App() {
   const subItems = secondLevel[activeDir] || []
   const activeSub = route.view === activeDir ? route.sub : null
   const isTopicPage = directoryItems.some((item) => item.id === route.view && item.id !== 'about')
-  const topicMeta = isTopicPage ? getSectionMeta(route.view, route.sub) : null
+  const topicMeta = useSectionMeta(isTopicPage ? route.view : null, isTopicPage ? route.sub : null)
 
   const navbar = (
     <Navbar
@@ -151,7 +156,7 @@ function App() {
     <div className="app">
       {navbar}
       <main className={`page ${route.view === 'about' ? 'page-about' : ''} ${isTopicPage ? 'page-topic' : ''}`}>
-        {isTopicPage && (
+        {isTopicPage && topicMeta && (
           <TopicHero
             title={topicMeta.title}
             meta={topicMeta}
@@ -269,6 +274,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
             }
 
             if (children?.length) {
+              const targetPath = firstNavChild(item.id)?.path || children[0].path
               return (
                 <li
                   key={item.id}
@@ -277,16 +283,15 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                   onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
                 >
                   <a
-                    href={`#${item.path}`}
+                    href={`#${targetPath}`}
                     className={activeDir === item.id ? 'active' : ''}
-                    aria-current={activeDir === item.id && !activeSub ? 'page' : undefined}
                     onClick={(event) => {
                       if (menuOpen && openDropdown !== item.id) {
                         event.preventDefault()
                         toggleDropdown(item.id)
                         return
                       }
-                      go(item.path)
+                      go(targetPath)
                     }}
                   >
                     {item.label}
@@ -379,10 +384,11 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
 
 function TopicHero({ title, meta }) {
   const [imgOk, setImgOk] = useState(true)
+  const imageSrc = useResolvedImage(meta.image)
 
   useEffect(() => {
     setImgOk(true)
-  }, [meta.image])
+  }, [meta.image, imageSrc])
 
   return (
     <section className="topic-hero">
@@ -390,8 +396,8 @@ function TopicHero({ title, meta }) {
         <h1 className="topic-hero-title">{title}</h1>
         <div className="topic-hero-grid">
           <div className="topic-hero-visual">
-            {meta.image && imgOk ? (
-              <img src={assetUrl(meta.image)} alt="" onError={() => setImgOk(false)} />
+            {imageSrc && imgOk ? (
+              <img src={imageSrc} alt="" onError={() => setImgOk(false)} />
             ) : (
               <div className="topic-hero-placeholder" aria-hidden="true" />
             )}
@@ -460,25 +466,32 @@ function SectionFrame({ title, intro, children }) {
   )
 }
 
-function storyText(text) {
-  const parts = String(text).split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>
+function AboutHtml({ html, className }) {
+  const [resolved, setResolved] = useState(() => sanitizeArticleHtml(html || ''))
+
+  useEffect(() => {
+    let cancelled = false
+    resolveArticleHtml(html || '').then((next) => {
+      if (!cancelled) setResolved(next)
+    })
+    return () => {
+      cancelled = true
     }
-    return <span key={index}>{part}</span>
-  })
+  }, [html])
+
+  return <div className={className} dangerouslySetInnerHTML={{ __html: resolved }} />
 }
 
 function AboutPage() {
+  const page = useAboutPage()
   return (
     <>
       <section className="about-intro warm-hero-surface">
         <div className="container about-intro-inner">
           <div className="about-intro-copy">
-            <p className="about-eyebrow">兒童成長發育專科 · 小兒內分泌</p>
+            <p className="about-eyebrow">{page.hero.eyebrow}</p>
             <div className="about-brand-row">
-              <h1 className="about-brand">{aboutProfile.name}</h1>
+              <h1 className="about-brand">{page.hero.name}</h1>
               <div className="about-social" aria-label="社群媒體">
                 <a
                   href={FACEBOOK_PAGE_URL}
@@ -506,10 +519,8 @@ function AboutPage() {
                 </a>
               </div>
             </div>
-            <p className="about-brand-en">{aboutProfile.english}</p>
-            <p className="about-lead">
-              具台大兒童內分泌科完整訓練、兒童內分泌次專科證照，以及多年醫學中心主治歷練與豐富自費治療經驗；提供健康至疾病的兒童成長全光譜照護，陪伴孩子走好成長每一步。
-            </p>
+            <p className="about-brand-en">{page.hero.english}</p>
+            <p className="about-lead">{page.hero.lead}</p>
             <div className="about-actions">
               <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
                 預約掛號
@@ -519,7 +530,7 @@ function AboutPage() {
           </div>
           <aside className="about-portrait">
             <div className="portrait-frame">
-              <img className="portrait-photo" src={doctorSrc} alt={aboutProfile.name} />
+              <img className="portrait-photo" src={doctorSrc} alt={page.hero.name} />
             </div>
           </aside>
         </div>
@@ -528,18 +539,9 @@ function AboutPage() {
       <section className="block-white">
         <div className="container about-layout">
           <div className="about-story">
-            <h2 className="block-title">醫師理念</h2>
-            <p className="block-kicker">APPROACH</p>
-            {aboutStory.map((block, blockIndex) => (
-              <p key={blockIndex} className="about-story-block">
-                {block.lines.map((line, lineIndex) => (
-                  <span key={lineIndex} className="about-story-line">
-                    {lineIndex > 0 && <br />}
-                    {storyText(line)}
-                  </span>
-                ))}
-              </p>
-            ))}
+            <h2 className="block-title">{page.story.title}</h2>
+            <p className="block-kicker">{page.story.kicker}</p>
+            <AboutHtml html={page.story.html} className="about-html" />
           </div>
         </div>
       </section>
@@ -550,9 +552,9 @@ function AboutPage() {
             <div className="cv-copy">
               <h2 className="block-title">醫師簡歷</h2>
               <p className="block-kicker">CURRICULUM VITAE</p>
-              <p className="cv-name">{aboutProfile.name} <span>{aboutProfile.english}</span></p>
-              <CvBlock title="現職" items={aboutProfile.current} />
-              <CvBlock title="學經歷與專業認證" items={[...aboutProfile.education, ...aboutProfile.licenses, ...aboutProfile.teaching]} />
+              <p className="cv-name">{page.hero.name} <span>{page.hero.english}</span></p>
+              <CvBlock title="現職" items={page.profile.current} />
+              <CvBlock title="學經歷與專業認證" items={[...page.profile.education, ...page.profile.licenses, ...page.profile.teaching]} />
             </div>
             <aside className="cv-certs" aria-label="專業證書">
               <figure className="cert-card">
@@ -581,7 +583,7 @@ function AboutPage() {
           <h2 className="block-title">專長與服務項目</h2>
           <p className="block-kicker">SPECIALTIES & SERVICES</p>
           <div className="specialty-list">
-            {specialties.map((item) => (
+            {page.specialties.map((item) => (
               <div key={item.id} className="specialty-row">
                 <strong>{item.title}</strong>
                 <span>{item.detail}</span>
@@ -593,14 +595,9 @@ function AboutPage() {
 
       <section className="block-beige origin-band">
         <div className="container origin-copy">
-          <h2 className="block-title">{aboutOrigin.title}</h2>
-          <p className="block-kicker">ORIGIN</p>
-          <p className="origin-lead"><strong>{aboutOrigin.lead}</strong></p>
-          {aboutOrigin.blocks.map((block, index) => (
-            block.divider
-              ? <hr key={`divider-${index}`} className="origin-divider" />
-              : <p key={index} className="origin-body">{storyText(block.text)}</p>
-          ))}
+          <h2 className="block-title">{page.origin.title}</h2>
+          <p className="block-kicker">{page.origin.kicker}</p>
+          <AboutHtml html={page.origin.html} className="origin-html" />
         </div>
       </section>
     </>

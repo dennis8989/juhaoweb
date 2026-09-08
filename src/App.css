@@ -639,6 +639,7 @@ html:not([data-nav-text-custom='true']) .navbar {
   max-width: 760px;
 }
 
+.about-story .about-html p,
 .about-story p,
 .about-story .about-story-block {
   color: var(--type-sectionBody-color, #1c1c1c);
@@ -649,6 +650,7 @@ html:not([data-nav-text-custom='true']) .navbar {
   font-family: var(--type-sectionBody-family, var(--font-sans));
 }
 
+.about-story .about-html strong,
 .about-story .about-story-block strong {
   color: var(--ink);
   font-weight: 700;
@@ -768,6 +770,13 @@ html:not([data-nav-text-custom='true']) .navbar {
   color: var(--ink);
 }
 
+.about-story .about-html img,
+.origin-html img {
+  max-width: 100%;
+  height: auto;
+}
+
+.origin-copy .origin-html p,
 .origin-copy > .origin-body {
   color: var(--type-sectionBody-color, #1c1c1c);
   margin-bottom: 1.35rem;
@@ -777,11 +786,13 @@ html:not([data-nav-text-custom='true']) .navbar {
   font-family: var(--type-sectionBody-family, var(--font-sans));
 }
 
+.origin-copy .origin-html strong,
 .origin-copy > .origin-body strong {
   color: var(--ink);
   font-weight: 700;
 }
 
+.origin-copy .origin-html hr,
 .origin-divider {
   border: none;
   border-top: 1px solid var(--border-color);
@@ -1950,6 +1961,7 @@ html:not([data-nav-text-custom='true']) .navbar {
 .visit-info dt {
   color: var(--gold-soft);
   font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0.12em;
   margin-bottom: 0.28rem;
 }
