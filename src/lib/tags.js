@@ -29,3 +29,12 @@ export function addTags(current, incoming) {
 export function articleTags(article) {
   return addTags([], article?.tags || [])
 }
+
+export function articleHasTag(article, tag) {
+  const needle = normalizeTag(tag)
+  return Boolean(needle) && articleTags(article).includes(needle)
+}
+
+export function tagListPath(tag) {
+  return `/articles/tag/${encodeURIComponent(normalizeTag(tag))}`
+}

@@ -552,11 +552,12 @@ function Editor({ user, articleId }) {
     setBusy(true)
     setError('')
     try {
-      const saved = await saveAdminArticle({
+      await saveAdminArticle({
         ...form,
         id: form.isNew ? (form.id.trim() || makeArticleId(form.title)) : form.id,
       })
-      go(`/admin/edit/${saved.id}`)
+      window.alert('儲存成功')
+      go('/admin')
     } catch (err) {
       setError(authErrorMessage(err))
     } finally {

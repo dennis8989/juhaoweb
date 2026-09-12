@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { generateClient } from 'aws-amplify/data'
 import { getUrl } from 'aws-amplify/storage'
 import { isAmplifyConfigured } from '../lib/amplify.js'
+import { articleHasTag } from '../lib/tags.js'
 import { isSitePageId } from './sitePages.js'
 
 const IMAGE_CACHE = new Map()
@@ -124,13 +125,14 @@ export async function getArticle(id) {
   return null
 }
 
-export function matchesFilter(article, { dir, sub, articleCat } = {}) {
+export function matchesFilter(article, { dir, sub, articleCat, tag } = {}) {
   if (!article || article.status !== 'published' || isSitePageId(article.id)) return false
   if (dir && !(article.dirs || []).includes(dir)) return false
   if (sub && !(article.subs || []).includes(sub)) return false
   if (articleCat && articleCat !== 'latest' && !(article.articleCats || []).includes(articleCat)) {
     return false
   }
+  if (tag && !articleHasTag(article, tag)) return false
   return true
 }
 
@@ -144,6 +146,7 @@ export function usePublishedArticles(criteria) {
   const dir = criteria?.dir || null
   const sub = criteria?.sub || null
   const articleCat = criteria?.articleCat || null
+  const tag = criteria?.tag || null
 
   useEffect(() => {
     let cancelled = false
@@ -153,7 +156,7 @@ export function usePublishedArticles(criteria) {
         if (cancelled) return
         setState({
           status: 'ready',
-          items: items.filter((item) => matchesFilter(item, { dir, sub, articleCat })),
+          items: items.filter((item) => matchesFilter(item, { dir, sub, articleCat, tag })),
           error: null,
         })
       })
@@ -164,7 +167,7 @@ export function usePublishedArticles(criteria) {
     return () => {
       cancelled = true
     }
-  }, [dir, sub, articleCat])
+  }, [dir, sub, articleCat, tag])
 
   return state
 }

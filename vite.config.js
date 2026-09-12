@@ -30,6 +30,7 @@ function amplifyOutputsPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  appType: 'spa',
   // GitHub Pages 專案站點網址為 https://<user>.github.io/<repo>/
   base: process.env.GITHUB_ACTIONS ? '/juhaoweb/' : '/',
   plugins: [react(), amplifyOutputsPlugin()],

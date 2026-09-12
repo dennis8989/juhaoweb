@@ -23,6 +23,11 @@ frontend:
       commands:
         - nvm use 20 || nvm install 20
         - npm run build
+        - |
+          if [ -n "${AWS_APP_ID:-}" ]; then
+            aws amplify update-app --app-id "$AWS_APP_ID" --region ap-northeast-1 --custom-rules file://scripts/amplify-spa-rewrites.json \
+              || echo "WARN: could not update Amplify SPA rewrites; set the 200 rewrite to /index.html in Hosting > Rewrites and redirects"
+          fi
   artifacts:
     baseDirectory: dist
     files:

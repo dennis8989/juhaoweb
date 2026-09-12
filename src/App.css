@@ -1570,11 +1570,24 @@ html:not([data-nav-text-custom='true']) .navbar {
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 500;
+  display: inline-block;
+  text-decoration: none;
+}
+
+a.tag {
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+a.tag:hover,
+a.tag:focus-visible {
+  background: color-mix(in srgb, var(--gold) 32%, var(--cream));
+  color: var(--primary-color);
 }
 
 .article-content {
   color: var(--text-primary);
-  line-height: 1.95;
+  line-height: 1.5;
   font-size: var(--type-articleBody-size, 17px);
   margin-bottom: 3rem;
   font-family: var(--type-articleBody-family, var(--font-sans));

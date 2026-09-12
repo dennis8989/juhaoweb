@@ -3,9 +3,9 @@ import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
 import DesignTools from './DesignToggle.jsx'
 import AdminApp from './admin/AdminApp.jsx'
-import { go, parseHash } from './lib/hash.js'
+import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
-import { articleTags } from './lib/tags.js'
+import { articleTags, normalizeTag, tagListPath } from './lib/tags.js'
 import { isAmplifyConfigured } from './lib/amplify.js'
 import {
   APPOINTMENT_URL,
@@ -38,14 +38,29 @@ function ArticleDate({ value, className }) {
   )
 }
 
-function ArticleTags({ article, className, itemClassName }) {
+function ArticleTags({ article, className, itemClassName, linked = false }) {
   const tags = articleTags(article)
   if (!tags.length) return null
   return (
     <ul className={className}>
-      {tags.map((tag) => (
-        <li key={tag} className={itemClassName}>{tag}</li>
-      ))}
+      {tags.map((tag) => {
+        const path = tagListPath(tag)
+        return (
+          <li key={tag}>
+            {linked ? (
+              <a
+                className={itemClassName}
+                href={toHref(path)}
+                onClick={handleRouteClick(path)}
+              >
+                {tag}
+              </a>
+            ) : (
+              <span className={itemClassName}>{tag}</span>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -75,17 +90,14 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!window.location.hash) {
-      window.location.replace('#/about')
-    }
-    const onHash = () => {
+    const onPop = () => {
       setRoute(parseHash())
       setMenuOpen(false)
       setOpenDropdown(null)
       window.scrollTo({ top: 0, behavior: 'auto' })
     }
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
   useEffect(() => {
@@ -257,10 +269,10 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                   onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
                 >
                   <a
-                    href={`#${item.path}`}
+                    href={toHref(item.path)}
                     className={activeDir === item.id ? 'active' : ''}
                     aria-current={activeDir === item.id ? 'page' : undefined}
-                    onClick={() => go(item.path)}
+                    onClick={handleRouteClick(item.path)}
                   >
                     {item.label}
                   </a>
@@ -283,7 +295,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                   onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
                 >
                   <a
-                    href={`#${targetPath}`}
+                    href={toHref(targetPath)}
                     className={activeDir === item.id ? 'active' : ''}
                     onClick={(event) => {
                       if (menuOpen && openDropdown !== item.id) {
@@ -291,7 +303,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                         toggleDropdown(item.id)
                         return
                       }
-                      go(targetPath)
+                      handleRouteClick(targetPath)(event)
                     }}
                   >
                     {item.label}
@@ -300,10 +312,10 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                     {children.map((sub) => (
                       <li key={sub.id}>
                         <a
-                          href={`#${sub.path}`}
+                          href={toHref(sub.path)}
                           className={activeDir === item.id && activeSub === sub.id ? 'active' : ''}
                           aria-current={activeDir === item.id && activeSub === sub.id ? 'page' : undefined}
-                          onClick={() => go(sub.path)}
+                          onClick={handleRouteClick(sub.path)}
                         >
                           {sub.label}
                         </a>
@@ -317,10 +329,10 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
             return (
               <li key={item.id}>
                 <a
-                  href={`#${item.path}`}
+                  href={toHref(item.path)}
                   className={activeDir === item.id ? 'active' : ''}
                   aria-current={activeDir === item.id ? 'page' : undefined}
-                  onClick={() => go(item.path)}
+                  onClick={handleRouteClick(item.path)}
                 >
                   {item.label}
                 </a>
@@ -346,7 +358,7 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
                 </a>
               </li>
               <li>
-                <a href="#/collaborate" onClick={() => go('/collaborate')}>合作邀約</a>
+                <a href={toHref('/collaborate')} onClick={handleRouteClick('/collaborate')}>合作邀約</a>
               </li>
             </ul>
           </li>
@@ -354,13 +366,10 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
             <>
               <li>
                 <a
-                  href={articleId ? `#/admin/edit/${articleId}` : '#/admin'}
+                  href={toHref(articleId ? `/admin/edit/${articleId}` : '/admin')}
                   className={`nav-appointment-link ${activeView === 'admin' ? 'active' : ''}`}
                   aria-current={activeView === 'admin' ? 'page' : undefined}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    go(articleId ? `/admin/edit/${articleId}` : '/admin')
-                  }}
+                  onClick={handleRouteClick(articleId ? `/admin/edit/${articleId}` : '/admin')}
                 >
                   文章編輯
                 </a>
@@ -417,6 +426,24 @@ function PageBody({ route }) {
     return <ArticleDetail id={route.sub} />
   }
   if (route.view === 'articles') {
+    if (route.sub === 'tag') {
+      const tag = normalizeTag(route.extra || '')
+      return (
+        <SectionFrame
+          title={tag ? `標籤：${tag}` : '標籤'}
+          intro={tag ? `以下為標有「${tag}」的衛教文章。` : '請從文章頁選擇一個標籤。'}
+        >
+          <button type="button" className="back-button" onClick={() => window.history.back()}>
+            ← 返回
+          </button>
+          {tag ? (
+            <ArticleList tag={tag} emptyText={`目前沒有標有「${tag}」的文章。`} />
+          ) : (
+            <p className="empty-note">請從文章頁選擇一個標籤。</p>
+          )}
+        </SectionFrame>
+      )
+    }
     const cat = route.sub || 'latest'
     const menuItem = articleMenu.find((item) => item.id === cat)
     return (
@@ -655,8 +682,8 @@ function CasePage({ sub }) {
   )
 }
 
-function ArticleList({ dir, sub, articleCat, emptyText }) {
-  const { status, items } = usePublishedArticles({ dir, sub, articleCat })
+function ArticleList({ dir, sub, articleCat, tag, emptyText }) {
+  const { status, items } = usePublishedArticles({ dir, sub, articleCat, tag })
   return (
     <ArticleFeed
       status={status}
@@ -687,10 +714,7 @@ function ArticleGrid({ items, emptyText }) {
   return (
     <div className="articles-grid">
       {items.map((article) => (
-        <a key={article.id} className="article-card" href={`#/article/${article.id}`} onClick={(event) => {
-          event.preventDefault()
-          go(`/article/${article.id}`)
-        }}>
+        <a key={article.id} className="article-card" href={toHref(`/article/${article.id}`)} onClick={handleRouteClick(`/article/${article.id}`)}>
           {article.images?.[0] && (
             <img className="article-card-thumb" src={article.images[0]} alt="" />
           )}
@@ -792,7 +816,7 @@ function ArticleDetail({ id }) {
               <ArticleDate value={article.createdAt} className="article-date" />
               <p className="article-kicker">李如浩醫師 · 兒童成長發育專科</p>
             </div>
-            <ArticleTags article={article} className="article-tags" itemClassName="tag" />
+            <ArticleTags article={article} className="article-tags" itemClassName="tag" linked />
           </div>
           {article.images?.length > 0 && !htmlHasImages(contentToHtml(article.content)) && (
             <div className="article-images">
@@ -995,7 +1019,7 @@ function Footer() {
               <li>
                 <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>
               </li>
-              <li><a href="#/collaborate">合作邀約</a></li>
+              <li><a href={toHref('/collaborate')} onClick={handleRouteClick('/collaborate')}>合作邀約</a></li>
             </ul>
           </div>
           <div className="footer-section">
