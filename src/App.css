@@ -1587,7 +1587,7 @@ a.tag:focus-visible {
 
 .article-content {
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1;
   font-size: var(--type-articleBody-size, 17px);
   margin-bottom: 3rem;
   font-family: var(--type-articleBody-family, var(--font-sans));

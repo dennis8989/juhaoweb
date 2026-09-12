@@ -14,6 +14,8 @@ import { persistableHtml, resolveArticleHtml } from '../lib/articleHtml.js'
 
 const DEFAULT_FONT_SIZE = '17px'
 const FONT_SIZES = ['14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
+const DEFAULT_LINE_HEIGHT = '1.0'
+const LINE_HEIGHTS = ['1.0', '1.15', '1.3', '1.5', '1.75', '2.0']
 const FONT_FAMILIES = [
   { id: 'sans', label: '黑體 GenSen', value: 'var(--font-sans)' },
   { id: 'serif', label: '明體 GenRyu', value: 'var(--font-serif)' },
@@ -89,6 +91,48 @@ const FontFamily = Extension.create({
         () =>
         ({ chain }) =>
           chain().focus().setMark('textStyle', { fontFamily: null }).removeEmptyTextStyle().run(),
+    }
+  },
+})
+
+const LineHeight = Extension.create({
+  name: 'lineHeight',
+  addOptions() {
+    return { types: ['paragraph', 'heading'] }
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          lineHeight: {
+            default: null,
+            parseHTML: (element) => element.style.lineHeight || null,
+            renderHTML: (attributes) => {
+              if (!attributes.lineHeight) return {}
+              return { style: `line-height: ${attributes.lineHeight}` }
+            },
+          },
+        },
+      },
+    ]
+  },
+  addCommands() {
+    return {
+      setLineHeight:
+        (lineHeight) =>
+        ({ tr, state, dispatch }) => {
+          const { from, to } = state.selection
+          let updated = false
+          state.doc.nodesBetween(from, to, (node, pos) => {
+            if (!this.options.types.includes(node.type.name)) return
+            const next = lineHeight === DEFAULT_LINE_HEIGHT ? null : lineHeight
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, lineHeight: next })
+            updated = true
+          })
+          if (updated && dispatch) dispatch(tr)
+          return updated
+        },
     }
   },
 })
@@ -218,7 +262,22 @@ function currentFontSize(editor) {
   return editor.getAttributes('textStyle').fontSize || DEFAULT_FONT_SIZE
 }
 
-export default function ArticleRichText({ value, onChange, disabled, placeholder = '在這裡寫內文。先選字再設粗體、顏色、字型或字級；點選圖片後可拖右下角調整大小。' }) {
+function normalizeLineHeight(value) {
+  if (!value) return DEFAULT_LINE_HEIGHT
+  const n = parseFloat(value)
+  if (!Number.isFinite(n)) return DEFAULT_LINE_HEIGHT
+  if (n === 1) return '1.0'
+  const match = LINE_HEIGHTS.find((item) => parseFloat(item) === n)
+  return match || String(value)
+}
+
+function currentLineHeight(editor) {
+  return normalizeLineHeight(
+    editor.getAttributes('paragraph').lineHeight || editor.getAttributes('heading').lineHeight,
+  )
+}
+
+export default function ArticleRichText({ value, onChange, disabled, placeholder = '在這裡寫內文。先選字再設粗體、顏色、字型、字級或行距；點選圖片後可拖右下角調整大小。' }) {
   const fileRef = useRef(null)
   const loadedRef = useRef(false)
 
@@ -229,6 +288,7 @@ export default function ArticleRichText({ value, onChange, disabled, placeholder
       TextStyle,
       FontSize,
       FontFamily,
+      LineHeight,
       Color,
       Highlight.configure({ multicolor: true }),
       Link.configure({
@@ -296,6 +356,9 @@ export default function ArticleRichText({ value, onChange, disabled, placeholder
   const sizeOptions = FONT_SIZES.includes(currentFontSize(editor))
     ? FONT_SIZES
     : [currentFontSize(editor), ...FONT_SIZES]
+  const lineHeightOptions = LINE_HEIGHTS.includes(currentLineHeight(editor))
+    ? LINE_HEIGHTS
+    : [currentLineHeight(editor), ...LINE_HEIGHTS]
   const imageWidth = editor.getAttributes('image').width || ''
 
   return (
@@ -336,6 +399,17 @@ export default function ArticleRichText({ value, onChange, disabled, placeholder
           >
             {sizeOptions.map((size) => (
               <option key={size} value={size}>{size}</option>
+            ))}
+          </select>
+        </label>
+        <label className="rte-select">
+          行距
+          <select
+            value={currentLineHeight(editor)}
+            onChange={(event) => editor.chain().focus().setLineHeight(event.target.value).run()}
+          >
+            {lineHeightOptions.map((height) => (
+              <option key={height} value={height}>{height}</option>
             ))}
           </select>
         </label>
