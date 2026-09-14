@@ -6,8 +6,10 @@ import { SITE_ABOUT_ID } from './sitePages.js'
 import {
   aboutImageKeys,
   defaultAboutPage,
+  invalidateAboutPage,
   parseAboutPage,
   serializeAboutPage,
+  syncSiteBackground,
 } from './aboutPage.js'
 
 function getClient() {
@@ -74,5 +76,7 @@ export async function saveAdminAbout(page) {
   }
   throwIfErrors(errors)
   invalidatePublishedArticles()
+  invalidateAboutPage()
+  await syncSiteBackground(next)
   return data
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { generateClient } from 'aws-amplify/data'
 import { isAmplifyConfigured } from '../lib/amplify.js'
 import { collectImageKeys } from '../lib/articleHtml.js'
+import { resolveImageUrl } from './articlesRepository.js'
 import {
   aboutOrigin,
   aboutProfile,
@@ -10,6 +11,28 @@ import {
 } from './content.js'
 
 import { SITE_ABOUT_ID } from './sitePages.js'
+
+const DEFAULT_BACKGROUND_PATH = 'patterns/warm-hero-texture.png'
+
+let aboutCache = null
+let aboutInflight = null
+
+export function defaultSiteBackgroundUrl() {
+  return `${import.meta.env.BASE_URL}${DEFAULT_BACKGROUND_PATH}`
+}
+
+export function applySiteBackground(href) {
+  if (typeof document === 'undefined') return
+  const next = href || defaultSiteBackgroundUrl()
+  document.documentElement.style.setProperty('--warm-hero-pattern', `url("${next}")`)
+  const isDefault = !href || next.includes(DEFAULT_BACKGROUND_PATH)
+  document.documentElement.dataset.siteBg = isDefault ? 'default' : 'custom'
+}
+
+export function invalidateAboutPage() {
+  aboutCache = null
+  aboutInflight = null
+}
 
 function escapeText(text) {
   return String(text)
@@ -83,6 +106,7 @@ export function defaultAboutPage() {
       kicker: 'ORIGIN',
       html: originToHtml(aboutOrigin),
     },
+    backgroundImage: '',
   }
 }
 
@@ -117,6 +141,7 @@ function mergeAboutPage(raw) {
       kicker: asText(source.origin?.kicker, fallback.origin.kicker),
       html: asText(source.origin?.html, fallback.origin.html),
     },
+    backgroundImage: asText(source.backgroundImage, ''),
   }
 }
 
@@ -144,7 +169,8 @@ export function aboutImageKeys(page) {
   return [...new Set([
     ...collectImageKeys(page?.story?.html),
     ...collectImageKeys(page?.origin?.html),
-  ])]
+    String(page?.backgroundImage || '').startsWith('public/') ? page.backgroundImage : '',
+  ].filter(Boolean))]
 }
 
 function publicClient() {
@@ -153,15 +179,50 @@ function publicClient() {
 }
 
 export async function loadPublishedAbout() {
-  const client = publicClient()
-  if (!client) return defaultAboutPage()
-  try {
-    const { data, errors } = await client.queries.getPublishedArticle({ id: SITE_ABOUT_ID })
-    if (errors?.length || !data) return defaultAboutPage()
-    return parseAboutPage(data)
-  } catch {
-    return defaultAboutPage()
+  if (aboutCache) return aboutCache
+  if (!aboutInflight) {
+    aboutInflight = (async () => {
+      const client = publicClient()
+      if (!client) return defaultAboutPage()
+      try {
+        const { data, errors } = await client.queries.getPublishedArticle({ id: SITE_ABOUT_ID })
+        if (errors?.length || !data) return defaultAboutPage()
+        return parseAboutPage(data)
+      } catch {
+        return defaultAboutPage()
+      }
+    })().then((page) => {
+      aboutCache = page
+      return page
+    }).finally(() => {
+      aboutInflight = null
+    })
   }
+  return aboutInflight
+}
+
+async function resolveSiteBackgroundUrl(page) {
+  const key = String(page?.backgroundImage || '')
+  if (!key) return defaultSiteBackgroundUrl()
+  return (await resolveImageUrl(key)) || defaultSiteBackgroundUrl()
+}
+
+export async function syncSiteBackground(page) {
+  applySiteBackground(await resolveSiteBackgroundUrl(page))
+}
+
+export function useSiteBackground() {
+  useEffect(() => {
+    let cancelled = false
+    loadPublishedAbout()
+      .then((page) => resolveSiteBackgroundUrl(page))
+      .then((href) => {
+        if (!cancelled) applySiteBackground(href)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 }
 
 export function useAboutPage() {

@@ -17,6 +17,7 @@
 .admin-toolbar,
 .admin-editor,
 .admin-table-wrap,
+.admin-list-filters,
 .admin-card {
   width: min(1080px, 100%);
   margin: 0 auto;
@@ -187,6 +188,78 @@
   color: #8a3b32;
 }
 
+.admin-table .admin-note {
+  margin: 0;
+  width: auto;
+}
+
+.admin-list-filters {
+  margin-bottom: 1.1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-tag-filter {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.admin-search {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.admin-search input {
+  width: 100%;
+  max-width: 28rem;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  color: var(--ink);
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}
+
+.admin-tag-filter-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+
+.admin-tag-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.admin-tag-filter-btn {
+  border: 1px solid var(--border-color);
+  background: #fff;
+  color: var(--primary-color);
+  padding: 0.28rem 0.8rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.admin-tag-filter-btn:hover,
+.admin-tag-filter-btn:focus-visible {
+  background: color-mix(in srgb, var(--gold) 18%, #fff);
+}
+
+.admin-tag-filter-btn.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
 .admin-editor {
   display: grid;
   gap: 1rem;
@@ -337,7 +410,14 @@
   color: var(--ink);
 }
 
-.admin-tag-suggest.is-selected,
+.admin-tag-suggest.is-selected {
+  opacity: 1;
+  border-style: solid;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
 .admin-tag-suggest:disabled {
   opacity: 0.45;
   cursor: default;
@@ -404,8 +484,8 @@
   min-height: 22rem;
   padding: 0.9rem 1rem 1.4rem;
   outline: none;
-  line-height: 1.5;
-  font-size: 17px;
+  line-height: 1.75;
+  font-size: 18px;
   font-family: var(--font-sans);
   font-weight: 400;
 }
@@ -596,6 +676,102 @@
   background: #fff;
   cursor: pointer;
   font: inherit;
+}
+
+.admin-bg-preview {
+  width: min(100%, 420px);
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border-color);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0.7rem 0 0.8rem;
+}
+
+.admin-bg-preview.is-default {
+  background-color: var(--warm-hero);
+  background-image: var(--warm-hero-stack);
+  background-size: 100% 100%, 220px auto;
+  background-repeat: no-repeat, repeat;
+}
+
+.admin-bg-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-bg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.admin-about-layout {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 1.2rem 1.5rem;
+  align-items: start;
+}
+
+.admin-about-layout .admin-editor {
+  width: 100%;
+  margin: 0;
+}
+
+.admin-about-bg {
+  position: sticky;
+  top: calc(var(--nav-height) + 1.2rem);
+  border: 1px solid var(--border-color);
+  background: #fff;
+  padding: 0.95rem 0.9rem 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-about-bg h2 {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.admin-about-bg .admin-muted {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.admin-about-bg .admin-bg-preview {
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 3 / 4;
+}
+
+.admin-shell:has(.admin-about-layout) .admin-bar,
+.admin-shell:has(.admin-about-layout) .admin-toolbar,
+.admin-shell:has(.admin-about-layout) .admin-note,
+.admin-shell:has(.admin-about-layout) .admin-error {
+  width: min(1280px, 100%);
+}
+
+@media (max-width: 900px) {
+  .admin-about-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-about-bg {
+    position: static;
+  }
+
+  .admin-about-bg .admin-bg-preview {
+    aspect-ratio: 16 / 9;
+  }
 }
 
 .admin-topic-fields {

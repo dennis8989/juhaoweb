@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { go } from '../lib/hash.js'
 import ArticleRichText from './ArticleRichText.jsx'
+import { uploadAdminImages } from '../data/adminArticles.js'
 import { getAdminAbout, saveAdminAbout } from '../data/adminAbout.js'
+import { useResolvedImage } from '../data/articlesRepository.js'
 
 function patchAt(list, index, partial) {
   return list.map((item, i) => (i === index ? { ...item, ...partial } : item))
@@ -39,6 +41,46 @@ function ListEditor({ items, onChange, allowHighlight, addLabel }) {
         {addLabel}
       </button>
     </div>
+  )
+}
+
+function SiteBackgroundEditor({ page, onChange, disabled }) {
+  const preview = useResolvedImage(page.backgroundImage)
+  const isCustom = Boolean(page.backgroundImage)
+
+  async function handleFile(event) {
+    const files = event.target.files
+    if (!files?.length) return
+    try {
+      const [key] = await uploadAdminImages(files, 'backgrounds')
+      if (key) onChange(key)
+    } catch (err) {
+      window.alert(err?.message || '背景圖片上傳失敗。')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
+  return (
+    <aside className="admin-about-bg">
+      <h2>背景圖片</h2>
+      <p className="admin-muted">導覽列與主題頁使用這張紙質背景。目前為預設圖，可上傳更換，隨時可還原。</p>
+      <div className={`admin-bg-preview${isCustom ? '' : ' is-default'}`}>
+        {isCustom && preview ? <img src={preview} alt="背景預覽" /> : <span>目前：預設背景</span>}
+      </div>
+      <div className="admin-bg-actions">
+        <label className="admin-topic-upload">
+          上傳背景圖片
+          <input type="file" accept="image/*" hidden disabled={disabled} onChange={handleFile} />
+        </label>
+        {isCustom && (
+          <button type="button" className="btn-ghost" disabled={disabled} onClick={() => onChange('')}>
+            還原預設背景
+          </button>
+        )}
+      </div>
+      <p className="admin-muted">儲存「關於我」後，導覽列與主題頁會一起更新。</p>
+    </aside>
   )
 }
 
@@ -112,6 +154,12 @@ export default function AboutEditor({ user, AdminBar, authErrorMessage }) {
       {status === 'loading' && <p className="admin-note">載入中…</p>}
       {status === 'error' && error && <p className="admin-error" role="alert">{error}</p>}
       {status === 'ready' && page && (
+        <div className="admin-about-layout">
+          <SiteBackgroundEditor
+            page={page}
+            disabled={busy}
+            onChange={(backgroundImage) => setPage((current) => ({ ...current, backgroundImage }))}
+          />
         <form className="admin-editor" onSubmit={handleSave}>
           {error && <p className="admin-error" role="alert">{error}</p>}
           {savedAt && <p className="admin-note">{savedAt}</p>}
@@ -273,6 +321,7 @@ export default function AboutEditor({ user, AdminBar, authErrorMessage }) {
             </button>
           </div>
         </form>
+        </div>
       )}
     </div>
   )

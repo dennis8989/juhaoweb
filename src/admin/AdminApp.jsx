@@ -8,7 +8,7 @@ import {
 } from 'aws-amplify/auth'
 import { go } from '../lib/hash.js'
 import { formatArticleDate, toDateInputValue } from '../lib/dates.js'
-import { addTags, articleTags } from '../lib/tags.js'
+import { addTags, articleHasAllTags, articleTags, collectArticleTags, formatTagList, toggleTag } from '../lib/tags.js'
 import { isAmplifyConfigured } from '../lib/amplify.js'
 import { contentToHtml } from '../lib/articleHtml.js'
 import {
@@ -260,9 +260,61 @@ function ForgotForm() {
   )
 }
 
+function stripSearchHtml(value) {
+  return String(value || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+function articleSearchHaystack(article) {
+  const labels = [
+    ...(article.articleCats || []).flatMap((id) => {
+      const cat = articleCats.find((item) => item.id === id)
+      return [id, cat?.label]
+    }),
+    ...(article.dirs || []).flatMap((id) => {
+      const dir = topicDirs.find((item) => item.id === id)
+      return [id, dir?.label]
+    }),
+    ...(article.subs || []).flatMap((id) => {
+      const sub = topicSubs.find((item) => item.id === id)
+      return [id, sub?.label, sub?.dirLabel]
+    }),
+  ]
+  return [
+    article.title,
+    article.id,
+    article.excerpt,
+    stripSearchHtml(contentToHtml(article.content)),
+    articleTags(article).join(' '),
+    ...labels,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+}
+
+function articleMatchesQuery(haystack, query) {
+  const tokens = String(query || '')
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (!tokens.length) return true
+  return tokens.every((token) => haystack.includes(token))
+}
+
 function ArticleIndex({ user }) {
   const [state, setState] = useState({ status: 'loading', items: [], error: '' })
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [pickedTags, setPickedTags] = useState([])
+  const [query, setQuery] = useState('')
 
   async function load() {
     setState((current) => ({ ...current, status: 'loading', error: '' }))
@@ -289,11 +341,42 @@ function ArticleIndex({ user }) {
     }
   }
 
+  const tags = useMemo(() => collectArticleTags(state.items), [state.items])
+  const haystacks = useMemo(() => {
+    const map = new Map()
+    for (const article of state.items) {
+      map.set(article.id, articleSearchHaystack(article))
+    }
+    return map
+  }, [state.items])
+  const visible = useMemo(() => {
+    return state.items.filter((article) => {
+      if (pickedTags.length && !articleHasAllTags(article, pickedTags)) return false
+      return articleMatchesQuery(haystacks.get(article.id) || '', query)
+    })
+  }, [state.items, pickedTags, query, haystacks])
+
+  function selectTag(tag) {
+    if (!tag) {
+      setPickedTags([])
+      return
+    }
+    setPickedTags((current) => toggleTag(current, tag))
+  }
+
+  const filterNote = (() => {
+    const parts = []
+    if (pickedTags.length) parts.push(`標籤「${formatTagList(pickedTags)}」`)
+    if (query.trim()) parts.push(`搜尋「${query.trim()}」`)
+    if (!parts.length) return `共 ${state.items.length} 篇。下架文只在後台看得到。`
+    return `${parts.join('、')}共 ${visible.length} 篇（全部 ${state.items.length} 篇）。`
+  })()
+
   return (
     <div className="admin-shell">
       <AdminBar user={user} title="文章列表" />
       <div className="admin-toolbar">
-        <p>共 {state.items.length} 篇。下架文只在後台看得到。</p>
+        <p>{filterNote}</p>
         <div className="admin-toolbar-actions">
           <button type="button" className="btn-ghost" onClick={() => go('/admin/about')}>
             關於我編輯
@@ -310,46 +393,98 @@ function ArticleIndex({ user }) {
       {state.status === 'loading' && <p className="admin-note">載入中…</p>}
       {state.status === 'ready' && state.items.length === 0 && <p className="admin-note">尚無文章。</p>}
       {state.status === 'ready' && state.items.length > 0 && (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>標題</th>
-                <th>日期</th>
-                <th>狀態</th>
-                <th>分類</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {state.items.map((article) => (
-                <tr key={article.id}>
-                  <td>
-                    <strong>{article.title}</strong>
-                    <div className="admin-muted">{article.id}</div>
-                  </td>
-                  <td>{formatArticleDate(article.createdAt) || '—'}</td>
-                  <td>
-                    <span className={`admin-status ${article.status}`}>{article.status === 'published' ? '上架' : '下架'}</span>
-                  </td>
-                  <td>
-                    {(article.articleCats || []).join('、') || '—'}
-                    {articleTags(article).length > 0 && (
-                      <div className="admin-muted">{articleTags(article).join('、')}</div>
-                    )}
-                  </td>
-                  <td className="admin-row-actions">
-                    <button type="button" onClick={() => go(`/admin/edit/${article.id}`)}>編輯</button>
-                    {article.status === 'published' && (
-                      <button type="button" onClick={() => go(`/article/${article.id}`)}>公開頁</button>
-                    )}
-                    <button type="button" className="danger" onClick={() => setPendingDelete(article)}>刪除</button>
-                  </td>
+        <>
+          <div className="admin-list-filters">
+          {tags.length > 0 && (
+            <nav className="admin-tag-filter" aria-label="以標籤篩選文章，可複選">
+              <p className="admin-tag-filter-label">標籤（可複選）</p>
+              <div className="admin-tag-filter-list">
+                <button
+                  type="button"
+                  className={`admin-tag-filter-btn${!pickedTags.length ? ' is-active' : ''}`}
+                  aria-pressed={!pickedTags.length}
+                  onClick={() => setPickedTags([])}
+                >
+                  全部
+                </button>
+                {tags.map((tag) => {
+                  const selected = pickedTags.includes(tag)
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`admin-tag-filter-btn${selected ? ' is-active' : ''}`}
+                      aria-pressed={selected}
+                      onClick={() => selectTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  )
+                })}
+              </div>
+            </nav>
+          )}
+          <label className="admin-search">
+            搜尋
+            <input
+              type="search"
+              value={query}
+              placeholder="標題、內文、分類、標籤…"
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>標題</th>
+                  <th>日期</th>
+                  <th>狀態</th>
+                  <th>分類</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {visible.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>
+                      <p className="admin-note">
+                        {query.trim()
+                          ? `找不到符合「${query.trim()}」${pickedTags.length ? `且標籤為「${formatTagList(pickedTags)}」` : ''}的文章。`
+                          : `目前沒有${pickedTags.length > 1 ? '同時' : ''}標有「${formatTagList(pickedTags)}」的文章。`}
+                      </p>
+                    </td>
+                  </tr>
+                ) : visible.map((article) => (
+                  <tr key={article.id}>
+                    <td>
+                      <strong>{article.title}</strong>
+                      <div className="admin-muted">{article.id}</div>
+                    </td>
+                    <td>{formatArticleDate(article.createdAt) || '—'}</td>
+                    <td>
+                      <span className={`admin-status ${article.status}`}>{article.status === 'published' ? '上架' : '下架'}</span>
+                    </td>
+                    <td>
+                      {(article.articleCats || []).join('、') || '—'}
+                      {articleTags(article).length > 0 && (
+                        <div className="admin-muted">{articleTags(article).join('、')}</div>
+                      )}
+                    </td>
+                    <td className="admin-row-actions">
+                      <button type="button" onClick={() => go(`/admin/edit/${article.id}`)}>編輯</button>
+                      {article.status === 'published' && (
+                        <button type="button" onClick={() => go(`/article/${article.id}`)}>公開頁</button>
+                      )}
+                      <button type="button" className="danger" onClick={() => setPendingDelete(article)}>刪除</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       {pendingDelete && (
         <div className="admin-confirm" role="dialog" aria-labelledby="delete-title">
@@ -466,8 +601,9 @@ function TagInput({ value, onChange, disabled }) {
               key={tag}
               type="button"
               className={`admin-tag-suggest${selected ? ' is-selected' : ''}`}
-              disabled={disabled || selected}
-              onClick={() => onChange(addTags(value, tag))}
+              disabled={disabled}
+              aria-pressed={selected}
+              onClick={() => onChange(toggleTag(value, tag))}
             >
               {tag}
             </button>
@@ -697,7 +833,7 @@ function Editor({ user, articleId }) {
 
           <fieldset>
             <legend>標籤</legend>
-            <p className="admin-muted">會顯示在公開列表與文章頁。可自訂，或點常用標籤快速加入。</p>
+            <p className="admin-muted">會顯示在公開列表與文章頁。常用標籤可複選，也可自行輸入。</p>
             <TagInput
               value={form.tags}
               onChange={(tags) => patch({ tags })}

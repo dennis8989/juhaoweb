@@ -217,7 +217,7 @@ export const TYPE_ROLES = [
     group: '醫師日誌',
     selector: '.article-content, .article-content p',
     affects: '文章內頁正文段落。同組會一起變更。',
-    defaults: { family: 'sans', weight: '400', size: 17 },
+    defaults: { family: 'sans', weight: '400', size: 18 },
   },
   {
     id: 'clinicTitle',

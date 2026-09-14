@@ -5,7 +5,7 @@ import DesignTools from './DesignToggle.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
-import { articleTags, normalizeTag, tagListPath } from './lib/tags.js'
+import { articleHasAllTags, articleTags, collectArticleTags, formatTagList, normalizeTag, toggleTag, uniqueTags, tagListPath } from './lib/tags.js'
 import { isAmplifyConfigured } from './lib/amplify.js'
 import {
   APPOINTMENT_URL,
@@ -19,7 +19,7 @@ import {
   firstNavChild,
   secondLevel,
 } from './data/content.js'
-import { useAboutPage } from './data/aboutPage.js'
+import { useAboutPage, useSiteBackground } from './data/aboutPage.js'
 import { useSectionMeta } from './data/topicsPage.js'
 import { useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
@@ -70,6 +70,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null)
   const [user, setUser] = useState(undefined)
+  useSiteBackground()
 
   useEffect(() => {
     if (!isAmplifyConfigured()) {
@@ -431,7 +432,7 @@ function PageBody({ route }) {
       return (
         <SectionFrame
           title={tag ? `標籤：${tag}` : '標籤'}
-          intro={tag ? `以下為標有「${tag}」的衛教文章。` : '請從文章頁選擇一個標籤。'}
+          intro={tag ? `以下先帶入「${tag}」，可再加選其他標籤；文章需符合所選的全部標籤。` : '請從文章頁選擇一個標籤。'}
         >
           <button type="button" className="back-button" onClick={() => window.history.back()}>
             ← 返回
@@ -682,14 +683,79 @@ function CasePage({ sub }) {
   )
 }
 
-function ArticleList({ dir, sub, articleCat, tag, emptyText }) {
-  const { status, items } = usePublishedArticles({ dir, sub, articleCat, tag })
+function ArticleList({ dir, sub, articleCat, tag: routeTag, emptyText }) {
+  const { status, items } = usePublishedArticles({ dir, sub, articleCat })
+  const [picked, setPicked] = useState(() => uniqueTags(routeTag ? [routeTag] : []))
+
+  useEffect(() => {
+    setPicked(uniqueTags(routeTag ? [routeTag] : []))
+  }, [dir, sub, articleCat, routeTag])
+
+  const selected = uniqueTags(picked)
+  const tags = useMemo(() => collectArticleTags(items), [items])
+  const visible = selected.length
+    ? items.filter((item) => articleHasAllTags(item, selected))
+    : items
+
+  function selectTag(tag) {
+    if (!tag) {
+      setPicked([])
+      if (!dir && !articleCat) go('/articles/latest')
+      return
+    }
+    setPicked((current) => toggleTag(current, tag))
+  }
+
+  const empty = selected.length
+    ? selected.length === 1
+      ? `目前沒有標有「${selected[0]}」的文章。`
+      : `目前沒有同時標有「${formatTagList(selected)}」的文章。`
+    : emptyText
+
   return (
-    <ArticleFeed
-      status={status}
-      items={items}
-      emptyText={emptyText}
-    />
+    <div className="article-list">
+      <ArticleFeed
+        status={status}
+        items={visible}
+        emptyText={empty}
+      />
+      {status === 'ready' && tags.length > 0 && (
+        <ArticleTagFilter tags={tags} active={selected} onSelect={selectTag} />
+      )}
+    </div>
+  )
+}
+
+function ArticleTagFilter({ tags, active, onSelect }) {
+  const selected = uniqueTags(active)
+  return (
+    <nav className="article-tag-filter" aria-label="以標籤篩選文章，可複選">
+      <p className="article-tag-filter-label">標籤（可複選）</p>
+      <div className="article-tag-filter-list">
+        <button
+          type="button"
+          className={`article-tag-filter-btn${!selected.length ? ' is-active' : ''}`}
+          aria-pressed={!selected.length}
+          onClick={() => onSelect('')}
+        >
+          全部
+        </button>
+        {tags.map((tag) => {
+          const isOn = selected.includes(tag)
+          return (
+            <button
+              key={tag}
+              type="button"
+              className={`article-tag-filter-btn${isOn ? ' is-active' : ''}`}
+              aria-pressed={isOn}
+              onClick={() => onSelect(tag)}
+            >
+              {tag}
+            </button>
+          )
+        })}
+      </div>
+    </nav>
   )
 }
 

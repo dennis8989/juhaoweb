@@ -12,9 +12,9 @@ import StarterKit from '@tiptap/starter-kit'
 import { uploadAdminImages } from '../data/adminArticles.js'
 import { persistableHtml, resolveArticleHtml } from '../lib/articleHtml.js'
 
-const DEFAULT_FONT_SIZE = '17px'
+const DEFAULT_FONT_SIZE = '18px'
 const FONT_SIZES = ['14px', '15px', '16px', '17px', '18px', '20px', '22px', '24px', '28px', '32px']
-const DEFAULT_LINE_HEIGHT = '1.5'
+const DEFAULT_LINE_HEIGHT = '1.75'
 const LINE_HEIGHTS = ['1.0', '1.15', '1.3', '1.5', '1.75', '2.0']
 const FONT_FAMILIES = [
   { id: 'sans', label: '黑體 GenSen', value: 'var(--font-sans)' },
