@@ -1,0 +1,389 @@
+{
+  "auth": {
+    "user_pool_id": "ap-northeast-1_B0PsM79TS",
+    "aws_region": "ap-northeast-1",
+    "user_pool_client_id": "6i6eboul0fq1a369cst9jslin7",
+    "identity_pool_id": "ap-northeast-1:cec737f5-4360-4f1f-8797-be90706e6741",
+    "mfa_methods": [],
+    "standard_required_attributes": [
+      "email"
+    ],
+    "username_attributes": [
+      "email"
+    ],
+    "user_verification_types": [
+      "email"
+    ],
+    "groups": [],
+    "mfa_configuration": "NONE",
+    "password_policy": {
+      "min_length": 8,
+      "require_lowercase": true,
+      "require_numbers": true,
+      "require_symbols": false,
+      "require_uppercase": true
+    },
+    "unauthenticated_identities_enabled": true
+  },
+  "data": {
+    "url": "https://myggba2ge5crngelrdlbmvmz6e.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+    "aws_region": "ap-northeast-1",
+    "api_key": "da2-ajb77zpbjrgd3lzd5tqhz6r24m",
+    "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+    "authorization_types": [
+      "API_KEY",
+      "AWS_IAM"
+    ],
+    "model_introspection": {
+      "version": 1,
+      "models": {
+        "Article": {
+          "name": "Article",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "title": {
+              "name": "title",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "excerpt": {
+              "name": "excerpt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "content": {
+              "name": "content",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "facebookUrl": {
+              "name": "facebookUrl",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "dirs": {
+              "name": "dirs",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "subs": {
+              "name": "subs",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "articleCats": {
+              "name": "articleCats",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "images": {
+              "name": "images",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "tags": {
+              "name": "tags",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "status": {
+              "name": "status",
+              "isArray": false,
+              "type": {
+                "enum": "ArticleStatus"
+              },
+              "isRequired": true,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "Articles",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "key",
+              "properties": {
+                "name": "articlesByStatus",
+                "queryField": "articlesByStatus",
+                "fields": [
+                  "status",
+                  "createdAt"
+                ]
+              }
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "allow": "private",
+                    "operations": [
+                      "read",
+                      "create",
+                      "update",
+                      "delete"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        }
+      },
+      "enums": {
+        "ArticleStatus": {
+          "name": "ArticleStatus",
+          "values": [
+            "published",
+            "draft"
+          ]
+        }
+      },
+      "nonModels": {
+        "PublishedArticle": {
+          "name": "PublishedArticle",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "title": {
+              "name": "title",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "excerpt": {
+              "name": "excerpt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "content": {
+              "name": "content",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "facebookUrl": {
+              "name": "facebookUrl",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "dirs": {
+              "name": "dirs",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "subs": {
+              "name": "subs",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "articleCats": {
+              "name": "articleCats",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "images": {
+              "name": "images",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "tags": {
+              "name": "tags",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "status": {
+              "name": "status",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            }
+          }
+        },
+        "PublishedArticlePage": {
+          "name": "PublishedArticlePage",
+          "fields": {
+            "items": {
+              "name": "items",
+              "isArray": true,
+              "type": {
+                "nonModel": "PublishedArticle"
+              },
+              "isRequired": true,
+              "attributes": [],
+              "isArrayNullable": false
+            },
+            "nextToken": {
+              "name": "nextToken",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            }
+          }
+        }
+      },
+      "queries": {
+        "listPublishedArticles": {
+          "name": "listPublishedArticles",
+          "isArray": false,
+          "type": {
+            "nonModel": "PublishedArticlePage"
+          },
+          "isRequired": false,
+          "arguments": {
+            "limit": {
+              "name": "limit",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false
+            },
+            "nextToken": {
+              "name": "nextToken",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false
+            }
+          }
+        },
+        "getPublishedArticle": {
+          "name": "getPublishedArticle",
+          "isArray": false,
+          "type": {
+            "nonModel": "PublishedArticle"
+          },
+          "isRequired": false,
+          "arguments": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "aws_region": "ap-northeast-1",
+    "bucket_name": "amplify-d1zwf54820xsiz-am-articleimagesbucket9abb8-ba4spjveugpe",
+    "buckets": [
+      {
+        "name": "articleImages",
+        "bucket_name": "amplify-d1zwf54820xsiz-am-articleimagesbucket9abb8-ba4spjveugpe",
+        "aws_region": "ap-northeast-1",
+        "paths": {
+          "public/*": {
+            "guest": [
+              "get",
+              "list"
+            ],
+            "authenticated": [
+              "get",
+              "list",
+              "write",
+              "delete"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "version": "1.5"
+}
