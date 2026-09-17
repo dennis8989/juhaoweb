@@ -1,5 +1,10 @@
 [
   {
+    "source": "https://www.ruhowgrow.com",
+    "status": "301",
+    "target": "https://ruhowgrow.com"
+  },
+  {
     "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|webp|html)$)([^.]+$)/>",
     "status": "200",
     "target": "/index.html"
