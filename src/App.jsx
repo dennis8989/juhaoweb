@@ -905,29 +905,9 @@ function ArticleDetail({ id }) {
               </a>
             )}
           </div>
-          {article.facebookUrl && <FacebookEmbed url={article.facebookUrl} />}
         </article>
       </div>
     </section>
-  )
-}
-
-function FacebookEmbed({ url }) {
-  const src = `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(url)}&show_text=true&width=500`
-  return (
-    <div className="fb-embed-wrap">
-      <iframe
-        title="Facebook 原文"
-        src={src}
-        width="500"
-        height="640"
-        style={{ border: 'none', overflow: 'hidden', maxWidth: '100%' }}
-        scrolling="no"
-        frameBorder="0"
-        allowFullScreen
-        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-      />
-    </div>
   )
 }
 

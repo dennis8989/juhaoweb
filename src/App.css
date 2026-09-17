@@ -1016,12 +1016,6 @@ html:not([data-nav-text-custom='true']) .navbar {
   font-family: var(--font-hand);
 }
 
-.fb-embed-wrap {
-  margin-top: 2rem;
-  display: flex;
-  justify-content: center;
-}
-
 /* Hero Section */
 .hero {
   position: relative;
