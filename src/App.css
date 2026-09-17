@@ -51,7 +51,7 @@ html:not([data-nav-text-custom='true']) .navbar {
   justify-content: space-between;
   align-items: center;
   position: relative;
-  gap: 2rem;
+  gap: 0;
 }
 
 .logo {
@@ -91,7 +91,7 @@ html:not([data-nav-text-custom='true']) .navbar {
 }
 
 .logo-text {
-  font-size: var(--type-logoZh-size, 1.02rem);
+  font-size: var(--type-logoZh-size, 15px);
   font-weight: var(--type-logoZh-weight, 400);
   font-family: var(--type-logoZh-family, var(--font-hand));
   color: var(--type-logoZh-color, var(--bar-fg));
@@ -109,6 +109,11 @@ html:not([data-nav-text-custom='true']) .navbar {
   min-width: 0;
 }
 
+/* 空的起始項：讓 Logo 到第一個選單的間距，和選單之間的間距一樣 */
+.nav-links::before {
+  content: '';
+}
+
 .nav-links > li {
   flex: 0 1 auto;
   min-width: 0;
@@ -116,6 +121,11 @@ html:not([data-nav-text-custom='true']) .navbar {
 
 .nav-links > li:has(.nav-appointment-link) {
   flex: 0 0 auto;
+}
+
+/* 「預約或合作」沒有外框，抵銷左右內距，讓文字間距和其他選單一致 */
+.nav-links > li:has(> .nav-drop-btn.nav-appointment-link) {
+  margin-inline: -0.9rem;
 }
 
 .nav-links a {
@@ -239,7 +249,6 @@ html:not([data-nav-text-custom='true']) .navbar {
   .nav-container {
     padding-left: 1.4rem;
     padding-right: 1.4rem;
-    gap: 1.1rem;
   }
 
   .nav-links {
@@ -2357,6 +2366,14 @@ a.tag:focus-visible {
 
   .nav-links.open {
     display: flex;
+  }
+
+  .nav-links::before {
+    display: none;
+  }
+
+  .nav-links > li:has(> .nav-drop-btn.nav-appointment-link) {
+    margin-inline: 0;
   }
 
   .nav-links > li {

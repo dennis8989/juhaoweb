@@ -1100,7 +1100,7 @@ function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>如浩醫師陪你好好成長 · 臺大兒童內分泌專科 · 實證醫學與溫暖陪伴</p>
+          <p>如浩醫師陪你好好成長 兒童內分泌專科</p>
         </div>
       </div>
     </footer>

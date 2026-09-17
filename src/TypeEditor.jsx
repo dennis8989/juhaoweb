@@ -65,7 +65,7 @@ export const TYPE_ROLES = [
     group: '導覽列',
     selector: '.logo-text',
     affects: '導覽列左側 Logo 中文「如浩醫師陪你好好成長」。',
-    defaults: { family: 'hand', weight: '400', size: 16 },
+    defaults: { family: 'hand', weight: '400', size: 15 },
   },
   {
     id: 'nav',
