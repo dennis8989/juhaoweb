@@ -4,6 +4,9 @@ import { publicArticles } from '../functions/public-articles/resource';
 const schema = a.schema({
   ArticleStatus: a.enum(['published', 'draft']),
 
+  // Amplify branch that built the site; each one keeps its own view count.
+  SiteEnv: a.enum(['amplify', 'dev']),
+
   PublishedArticle: a.customType({
     id: a.id().required(),
     title: a.string().required(),
@@ -25,6 +28,11 @@ const schema = a.schema({
     nextToken: a.string(),
   }),
 
+  ArticleViewCount: a.customType({
+    id: a.id().required(),
+    views: a.integer(),
+  }),
+
   Article: a
     .model({
       title: a.string().required(),
@@ -38,6 +46,8 @@ const schema = a.schema({
       tags: a.string().array(),
       status: a.ref('ArticleStatus').required(),
       createdAt: a.datetime(),
+      viewCount: a.integer(),
+      devViewCount: a.integer(),
     })
     .secondaryIndexes((index) => [
       index('status').sortKeys(['createdAt']).name('articlesByStatus').queryField('articlesByStatus'),
@@ -63,6 +73,21 @@ const schema = a.schema({
     })
     .returns(a.ref('PublishedArticle'))
     .handler(a.handler.function(publicArticles))
+    .authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
+
+  recordArticleView: a
+    .mutation()
+    .arguments({
+      id: a.id().required(),
+      env: a.ref('SiteEnv').required(),
+    })
+    .returns(a.ref('ArticleViewCount'))
+    .handler(
+      a.handler.custom({
+        dataSource: a.ref('Article'),
+        entry: './record-article-view.js',
+      }),
+    )
     .authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
 });
 
