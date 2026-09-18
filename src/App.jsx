@@ -7,6 +7,7 @@ import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
 import { articleHasAllTags, articleTags, collectArticleTags, formatTagList, normalizeTag, toggleTag, uniqueTags, tagListPath } from './lib/tags.js'
 import { isAmplifyConfigured } from './lib/amplify.js'
+import { setAnalyticsEnabled } from './lib/analytics.js'
 import {
   APPOINTMENT_URL,
   FACEBOOK_PAGE_URL,
@@ -115,6 +116,11 @@ function App() {
     // `user` is undefined until the login check finishes; signed-in admins aren't counted as readers.
     if (viewedArticleId && user === null) recordArticleView(viewedArticleId)
   }, [viewedArticleId, user])
+
+  useEffect(() => {
+    // Same rule as the view counter: only signed-out readers on public pages, after the login check.
+    if (user !== undefined) setAnalyticsEnabled(user === null && route.view !== 'admin')
+  }, [user, route.view])
 
   const activeDir = useMemo(() => {
     if (route.view === 'articles') {
