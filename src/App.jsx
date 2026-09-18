@@ -112,8 +112,9 @@ function App() {
   const viewedArticleId = route.view === 'article' ? articleState.article?.id : null
 
   useEffect(() => {
-    if (viewedArticleId) recordArticleView(viewedArticleId)
-  }, [viewedArticleId])
+    // `user` is undefined until the login check finishes; signed-in admins aren't counted as readers.
+    if (viewedArticleId && user === null) recordArticleView(viewedArticleId)
+  }, [viewedArticleId, user])
 
   const activeDir = useMemo(() => {
     if (route.view === 'articles') {
