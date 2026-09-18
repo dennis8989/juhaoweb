@@ -132,6 +132,20 @@
               "isRequired": false,
               "attributes": []
             },
+            "viewCount": {
+              "name": "viewCount",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "devViewCount": {
+              "name": "devViewCount",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
             "updatedAt": {
               "name": "updatedAt",
               "isArray": false,
@@ -189,6 +203,13 @@
           "values": [
             "published",
             "draft"
+          ]
+        },
+        "SiteEnv": {
+          "name": "SiteEnv",
+          "values": [
+            "amplify",
+            "dev"
           ]
         }
       },
@@ -316,6 +337,25 @@
               "attributes": []
             }
           }
+        },
+        "ArticleViewCount": {
+          "name": "ArticleViewCount",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "views": {
+              "name": "views",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            }
+          }
         }
       },
       "queries": {
@@ -353,6 +393,32 @@
               "name": "id",
               "isArray": false,
               "type": "ID",
+              "isRequired": true
+            }
+          }
+        }
+      },
+      "mutations": {
+        "recordArticleView": {
+          "name": "recordArticleView",
+          "isArray": false,
+          "type": {
+            "nonModel": "ArticleViewCount"
+          },
+          "isRequired": false,
+          "arguments": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true
+            },
+            "env": {
+              "name": "env",
+              "isArray": false,
+              "type": {
+                "enum": "SiteEnv"
+              },
               "isRequired": true
             }
           }
