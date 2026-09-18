@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { generateClient } from 'aws-amplify/data'
 import { getUrl } from 'aws-amplify/storage'
-import { isAmplifyConfigured } from '../lib/amplify.js'
+import { SITE_ENV, isAmplifyConfigured } from '../lib/amplify.js'
 import { articleHasTag } from '../lib/tags.js'
 import { isSitePageId } from './sitePages.js'
 
@@ -123,6 +123,50 @@ export async function getArticle(id) {
   const article = await withResolvedImages(data)
   if (article && article.status === 'published') return article
   return null
+}
+
+const VIEW_WINDOW_MS = 24 * 60 * 60 * 1000
+const BOT_USER_AGENT = /bot|crawl|spider|slurp|facebookexternalhit|headless|lighthouse/i
+const viewedThisVisit = new Set()
+
+function viewStorageKey(id) {
+  return `article-viewed:${id}`
+}
+
+function viewedRecently(id) {
+  if (viewedThisVisit.has(id)) return true
+  try {
+    const last = Number(localStorage.getItem(viewStorageKey(id)))
+    return Boolean(last) && Date.now() - last < VIEW_WINDOW_MS
+  } catch {
+    return false
+  }
+}
+
+function markViewed(id) {
+  viewedThisVisit.add(id)
+  try {
+    localStorage.setItem(viewStorageKey(id), String(Date.now()))
+  } catch {
+    // Storage can be blocked (private mode); the in-memory set still covers this visit.
+  }
+}
+
+/** Count at most one view per browser, per article, per day. Failures are ignored. */
+export async function recordArticleView(id) {
+  if (!id || isSitePageId(id) || viewedRecently(id)) return
+  if (navigator.webdriver || BOT_USER_AGENT.test(navigator.userAgent || '')) return
+  const client = getClient()
+  // A bundle built against outputs without this mutation just skips counting.
+  if (!client?.mutations?.recordArticleView) return
+
+  // Mark before the request so StrictMode's second effect run doesn't count twice.
+  markViewed(id)
+  try {
+    await client.mutations.recordArticleView({ id, env: SITE_ENV })
+  } catch {
+    // A missed view isn't worth surfacing to readers.
+  }
 }
 
 export function matchesFilter(article, { dir, sub, articleCat, tag } = {}) {

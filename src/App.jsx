@@ -21,7 +21,7 @@ import {
 } from './data/content.js'
 import { useAboutPage, useSiteBackground } from './data/aboutPage.js'
 import { useSectionMeta } from './data/topicsPage.js'
-import { useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
+import { recordArticleView, useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
@@ -109,6 +109,11 @@ function App() {
   }, [route.view, route.sub])
 
   const articleState = useArticle(route.view === 'article' ? route.sub : null)
+  const viewedArticleId = route.view === 'article' ? articleState.article?.id : null
+
+  useEffect(() => {
+    if (viewedArticleId) recordArticleView(viewedArticleId)
+  }, [viewedArticleId])
 
   const activeDir = useMemo(() => {
     if (route.view === 'articles') {

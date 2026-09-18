@@ -22,7 +22,8 @@ frontend:
     build:
       commands:
         - nvm use 20 || nvm install 20
-        - npm run build
+        # Tells the site which branch built it, so amplify and dev keep separate view counts.
+        - VITE_SITE_ENV="$AWS_BRANCH" npm run build
         - |
           if [ -n "${AWS_APP_ID:-}" ]; then
             aws amplify update-app --app-id "$AWS_APP_ID" --region ap-northeast-1 --custom-rules file://scripts/amplify-spa-rewrites.json \

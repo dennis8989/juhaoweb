@@ -156,6 +156,12 @@
   font-size: 0.9rem;
 }
 
+.admin-table .admin-views {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .admin-editor input[type='date'] {
   max-width: 14rem;
 }

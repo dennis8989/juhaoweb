@@ -9,7 +9,7 @@ import {
 import { go } from '../lib/hash.js'
 import { formatArticleDate, toDateInputValue } from '../lib/dates.js'
 import { addTags, articleHasAllTags, articleTags, collectArticleTags, formatTagList, toggleTag } from '../lib/tags.js'
-import { isAmplifyConfigured } from '../lib/amplify.js'
+import { SITE_ENV, isAmplifyConfigured } from '../lib/amplify.js'
 import { contentToHtml } from '../lib/articleHtml.js'
 import {
   deleteAdminArticle,
@@ -300,6 +300,12 @@ function articleSearchHaystack(article) {
     .toLowerCase()
 }
 
+/** Views for the branch this admin runs on: the live site counts separately from `dev`. */
+function articleViews(article) {
+  const views = SITE_ENV === 'amplify' ? article.viewCount : article.devViewCount
+  return (views || 0).toLocaleString()
+}
+
 function articleMatchesQuery(haystack, query) {
   const tokens = String(query || '')
     .trim()
@@ -441,6 +447,7 @@ function ArticleIndex({ user }) {
                   <th>標題</th>
                   <th>日期</th>
                   <th>狀態</th>
+                  <th className="admin-views">{SITE_ENV === 'amplify' ? '瀏覽' : '瀏覽（dev）'}</th>
                   <th>分類</th>
                   <th />
                 </tr>
@@ -448,7 +455,7 @@ function ArticleIndex({ user }) {
               <tbody>
                 {visible.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>
+                    <td colSpan={6}>
                       <p className="admin-note">
                         {query.trim()
                           ? `找不到符合「${query.trim()}」${pickedTags.length ? `且標籤為「${formatTagList(pickedTags)}」` : ''}的文章。`
@@ -466,6 +473,7 @@ function ArticleIndex({ user }) {
                     <td>
                       <span className={`admin-status ${article.status}`}>{article.status === 'published' ? '上架' : '下架'}</span>
                     </td>
+                    <td className="admin-views">{articleViews(article)}</td>
                     <td>
                       {(article.articleCats || []).join('、') || '—'}
                       {articleTags(article).length > 0 && (
