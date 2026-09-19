@@ -253,7 +253,12 @@
   }
 }
 
-.dropdown a,
+.dropdown a {
+  display: block;
+  padding: 0.7rem 1.1rem;
+  color: var(--ink) !important;
+}
+
 .dropdown a:hover {
   color: var(--gold) !important;
   background: var(--cream);
@@ -2420,7 +2425,12 @@ a.tag:focus-visible {
     min-width: 0;
   }
 
-  .dropdown a,
+  .dropdown a {
+    color: var(--bar-fg) !important;
+    opacity: 0.82;
+    padding: 0.55rem 0 0.55rem 0.2rem;
+  }
+
   .dropdown a:hover,
   .dropdown a.active {
     background: transparent;
@@ -2453,12 +2463,6 @@ a.tag:focus-visible {
 }
 
 @media (max-width: 768px) {
-  /* 手機版滿版顯示：拿掉左右留白，桌面版不受影響 */
-  .container {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
   .cv-certs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2531,10 +2535,6 @@ a.tag:focus-visible {
     font-size: calc(18px * var(--article-font-scale, 1));
   }
 
-  /* 字級按鈕保留一點右邊距，避免緊貼螢幕邊緣不好點 */
-  .font-size-control {
-    padding-right: 0.75rem;
-  }
 
   .article-footer {
     flex-direction: column;
