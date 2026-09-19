@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
-import DesignTools from './DesignToggle.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
 import { articleHasAllTags, articleTags, collectArticleTags, formatTagList, normalizeTag, toggleTag, uniqueTags, tagListPath } from './lib/tags.js'
-import { isAmplifyConfigured } from './lib/amplify.js'
+import { SITE_ENV, isAmplifyConfigured } from './lib/amplify.js'
 import { setAnalyticsEnabled } from './lib/analytics.js'
 import {
   APPOINTMENT_URL,
@@ -14,8 +13,6 @@ import {
   INSTAGRAM_URL,
   clinicLocations,
   articleMenu,
-  caseMenu,
-  casePages,
   directoryItems,
   firstNavChild,
   secondLevel,
@@ -27,6 +24,8 @@ import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, saniti
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
+// The doctor's photo only appears on the production site; dev and local builds leave it out.
+const showDoctorPhoto = SITE_ENV === 'amplify'
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
 
 function ArticleDate({ value, className }) {
@@ -103,6 +102,10 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (route.view === 'cases' && route.sub) {
+      go('/cases', { replace: true })
+      return
+    }
     const first = firstNavChild(route.view)
     if (first && !route.sub) {
       go(first.path, { replace: true })
@@ -209,7 +212,6 @@ function App() {
       </main>
       <ClinicHours />
       <Footer />
-      <DesignTools />
     </div>
   )
 }
@@ -272,31 +274,6 @@ function Navbar({ menuOpen, setMenuOpen, openDropdown, setOpenDropdown, activeDi
         <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
           {directoryItems.map((item) => {
             const children = secondLevel[item.id]
-
-            if (item.id === 'cases') {
-              return (
-                <li
-                  key={item.id}
-                  className={`has-dropdown ${openDropdown === 'cases' ? 'open' : ''}`}
-                  onMouseEnter={() => { if (!menuOpen) setOpenDropdown('cases') }}
-                  onMouseLeave={() => { if (!menuOpen) setOpenDropdown(null) }}
-                >
-                  <a
-                    href={toHref(item.path)}
-                    className={activeDir === item.id ? 'active' : ''}
-                    aria-current={activeDir === item.id ? 'page' : undefined}
-                    onClick={handleRouteClick(item.path)}
-                  >
-                    {item.label}
-                  </a>
-                  <ul className="dropdown">
-                    <li>
-                      <span className="dropdown-soon">開發中</span>
-                    </li>
-                  </ul>
-                </li>
-              )
-            }
 
             if (children?.length) {
               const targetPath = firstNavChild(item.id)?.path || children[0].path
@@ -475,7 +452,7 @@ function PageBody({ route }) {
     return <CollaboratePage />
   }
   if (route.view === 'cases') {
-    return <CasePage sub={route.sub} />
+    return <CasePage />
   }
 
   const dir = route.view
@@ -565,14 +542,25 @@ function AboutPage() {
               <a href={APPOINTMENT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
                 預約掛號
               </a>
-              <a href="#contact" className="btn-ghost">門診時間</a>
+              <a
+                href="#contact"
+                className="btn-ghost"
+                onClick={(event) => {
+                  event.preventDefault()
+                  document.getElementById('contact')?.scrollIntoView()
+                }}
+              >
+                門診時間
+              </a>
             </div>
           </div>
-          <aside className="about-portrait">
-            <div className="portrait-frame">
-              <img className="portrait-photo" src={doctorSrc} alt={page.hero.name} />
-            </div>
-          </aside>
+          {showDoctorPhoto && (
+            <aside className="about-portrait">
+              <div className="portrait-frame">
+                <img className="portrait-photo" src={doctorSrc} alt={page.hero.name} />
+              </div>
+            </aside>
+          )}
         </div>
       </section>
 
@@ -663,33 +651,11 @@ function CvBlock({ title, items }) {
   )
 }
 
-function CasePage({ sub }) {
-  const key = sub || null
-  const relatedCats = key ? casePages[key]?.relatedArticleCats || [] : []
-  const { status, items } = usePublishedArticles()
-  const unique = items.filter((item, index, arr) => {
-    if (!relatedCats.some((cat) => (item.articleCats || []).includes(cat))) return false
-    return arr.findIndex((row) => row.id === item.id) === index
-  })
-
+function CasePage() {
   return (
     <section className="content-section topic-list">
       <div className="container">
-        <div className="empty-note">
-          <p>個案圖文整理中。以下先提供相關衛教，方便家長對照閱讀；正式案例刊出後會更新於此。</p>
-        </div>
-        {relatedCats.length > 0 && (
-          <>
-            {status === 'ready' && unique.length > 0 && (
-              <h3 className="subsection-title">相關衛教</h3>
-            )}
-            <ArticleFeed
-              status={status}
-              items={unique}
-              emptyText="相關衛教將在文章上架後顯示。"
-            />
-          </>
-        )}
+        <ArticleList dir="cases" emptyText="真實案例整理中，敬請期待。" />
       </div>
     </section>
   )
@@ -809,6 +775,68 @@ function ArticleGrid({ items, emptyText }) {
   )
 }
 
+const ARTICLE_FONT_SCALE_KEY = 'juhao-article-font-scale'
+const ARTICLE_FONT_SCALE_MIN = 0.875
+const ARTICLE_FONT_SCALE_MAX = 1.375
+const ARTICLE_FONT_SCALE_STEP = 0.125
+const ARTICLE_FONT_SCALE_DEFAULT = 1
+
+function loadArticleFontScale() {
+  try {
+    const saved = Number(localStorage.getItem(ARTICLE_FONT_SCALE_KEY))
+    if (Number.isFinite(saved) && saved >= ARTICLE_FONT_SCALE_MIN && saved <= ARTICLE_FONT_SCALE_MAX) return saved
+  } catch {
+    // 讀不到就用預設值
+  }
+  return ARTICLE_FONT_SCALE_DEFAULT
+}
+
+// 記住讀者調整過的文章字級，換下一篇、下次再來也維持同樣大小。
+function useArticleFontScale() {
+  const [scale, setScale] = useState(loadArticleFontScale)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ARTICLE_FONT_SCALE_KEY, String(scale))
+    } catch {
+      // 存不進去就算了，不影響閱讀
+    }
+  }, [scale])
+
+  return [scale, setScale]
+}
+
+function FontSizeControl({ scale, onChange }) {
+  const step = (delta) => {
+    const next = Math.round((scale + delta) * 1000) / 1000
+    onChange(Math.min(ARTICLE_FONT_SCALE_MAX, Math.max(ARTICLE_FONT_SCALE_MIN, next)))
+  }
+
+  return (
+    <div className="font-size-control" role="group" aria-label="調整文章字級">
+      <span className="font-size-control-label">文字大小</span>
+      <button
+        type="button"
+        className="font-size-control-btn"
+        onClick={() => step(-ARTICLE_FONT_SCALE_STEP)}
+        disabled={scale <= ARTICLE_FONT_SCALE_MIN}
+        aria-label="縮小字級"
+      >
+        A－
+      </button>
+      <button
+        type="button"
+        className="font-size-control-btn"
+        onClick={() => step(ARTICLE_FONT_SCALE_STEP)}
+        disabled={scale >= ARTICLE_FONT_SCALE_MAX}
+        aria-label="放大字級"
+      >
+        A＋
+      </button>
+    </div>
+  )
+}
+
 function ArticleBody({ article }) {
   const source = contentToHtml(article.content)
   const rich = looksLikeHtml(article.content)
@@ -851,6 +879,7 @@ function ArticleBody({ article }) {
 
 function ArticleDetail({ id }) {
   const { status, article } = useArticle(id)
+  const [fontScale, setFontScale] = useArticleFontScale()
 
   if (status === 'loading') {
     return (
@@ -887,7 +916,7 @@ function ArticleDetail({ id }) {
         <button type="button" className="back-button" onClick={() => window.history.back()}>
           ← 返回
         </button>
-        <article className="article-full">
+        <article className="article-full" style={{ '--article-font-scale': fontScale }}>
           <div className="article-header">
             <h1 className="article-title-full">{article.title}</h1>
             <div className="article-meta">
@@ -896,6 +925,7 @@ function ArticleDetail({ id }) {
             </div>
             <ArticleTags article={article} className="article-tags" itemClassName="tag" linked />
           </div>
+          <FontSizeControl scale={fontScale} onChange={setFontScale} />
           {article.images?.length > 0 && !htmlHasImages(contentToHtml(article.content)) && (
             <div className="article-images">
               {article.images.map((src, index) => (
@@ -1022,35 +1052,27 @@ function ClinicHours() {
 }
 
 function CollaboratePage() {
-  const onSubmit = (event) => {
-    event.preventDefault()
-  }
-
   return (
     <section className="collaborate-section">
       <div className="container collaborate-wrap">
         <h1 className="collaborate-title">代言或演講合作邀約</h1>
-        <form className="collaborate-form" onSubmit={onSubmit}>
-          <div className="collaborate-grid">
-            <label className="collaborate-field">
-              <span>Name: <i>*</i></span>
-              <input type="text" name="name" required autoComplete="name" />
-            </label>
-            <label className="collaborate-field">
-              <span>Email: <i>*</i></span>
-              <input type="email" name="email" required autoComplete="email" />
-            </label>
-            <label className="collaborate-field">
-              <span>Phone:</span>
-              <input type="tel" name="phone" autoComplete="tel" />
-            </label>
-            <label className="collaborate-field collaborate-message">
-              <span>Message: <i>*</i></span>
-              <textarea name="message" rows="8" required />
-            </label>
-          </div>
-          <button type="submit" className="collaborate-submit">發送郵件</button>
-        </form>
+        <p className="collaborate-notice">請透過 Facebook 或 Instagram 私訊聯繫，會盡快回覆您。</p>
+        <div className="collaborate-social-actions">
+          <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6H17V4.1C16.6 4 15.5 4 14.2 4c-2.7 0-4.5 1.6-4.5 4.6v2h-3v3.2h3V22h4z" />
+            </svg>
+            Facebook 私訊
+          </a>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2zm0 7.9a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2z" />
+              <circle cx="17.4" cy="6.7" r="1.15" />
+              <path d="M16.5 3H7.5A4.5 4.5 0 0 0 3 7.5v9A4.5 4.5 0 0 0 7.5 21h9a4.5 4.5 0 0 0 4.5-4.5v-9A4.5 4.5 0 0 0 16.5 3zm3 13.5a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9z" />
+            </svg>
+            Instagram 私訊
+          </a>
+        </div>
       </div>
     </section>
   )
@@ -1092,7 +1114,7 @@ function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>如浩醫師陪你好好成長 兒童內分泌專科</p>
+          <p>如浩醫師陪你好好成長・兒童內分泌專科</p>
         </div>
       </div>
     </footer>

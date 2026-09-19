@@ -1,5 +1,6 @@
 /* Navbar */
 .navbar {
+  --bar-fg: var(--ink);
   position: fixed;
   top: 0;
   left: 0;
@@ -9,10 +10,6 @@
   color: var(--bar-fg);
   box-shadow: none;
   transition: box-shadow 0.3s ease, background 0.2s ease, color 0.2s ease;
-}
-
-html:not([data-nav-text-custom='true']) .navbar {
-  --bar-fg: var(--ink);
 }
 
 .navbar::before {
@@ -257,17 +254,6 @@ html:not([data-nav-text-custom='true']) .navbar {
 }
 
 .dropdown a,
-.dropdown-soon {
-  display: block;
-  padding: 0.7rem 1.1rem;
-  color: var(--ink) !important;
-}
-
-.dropdown-soon {
-  color: var(--text-muted) !important;
-  cursor: default;
-}
-
 .dropdown a:hover {
   color: var(--gold) !important;
   background: var(--cream);
@@ -570,11 +556,12 @@ html:not([data-nav-text-custom='true']) .navbar {
 .btn-ghost {
   background: transparent;
   color: var(--ink);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--ink);
 }
 
 .btn-ghost:hover {
-  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bar-fg);
 }
 
 .subnav {
@@ -1588,6 +1575,44 @@ html:not([data-nav-text-custom='true']) .navbar {
   border-bottom: 2px solid var(--bg-section);
 }
 
+.font-size-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin: -0.6rem 0 1.6rem;
+}
+
+.font-size-control-label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.font-size-control-btn {
+  min-width: 2.6rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.font-size-control-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+.font-size-control-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .article-images {
   display: grid;
   gap: 1.25rem;
@@ -1661,7 +1686,7 @@ a.tag:focus-visible {
 .article-content {
   color: var(--text-primary);
   line-height: 1.75;
-  font-size: var(--type-articleBody-size, 18px);
+  font-size: calc(var(--type-articleBody-size, 18px) * var(--article-font-scale, 1));
   margin-bottom: 3rem;
   font-family: var(--type-articleBody-family, var(--font-sans));
   font-weight: var(--type-articleBody-weight, 400);
@@ -2129,62 +2154,27 @@ a.tag:focus-visible {
   background: var(--border-color);
 }
 
-.collaborate-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.35rem 1.4rem;
-}
-
-.collaborate-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  font-size: 0.88rem;
+.collaborate-notice {
+  max-width: 34rem;
+  margin: 0 auto 2.4rem;
   color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.8;
+  text-align: center;
 }
 
-.collaborate-field i {
-  color: #c45c4a;
-  font-style: normal;
+.collaborate-social-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.collaborate-field input,
-.collaborate-field textarea {
-  width: 100%;
-  border: none;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--ink) 8%, var(--paper));
-  color: var(--text-primary);
-  padding: 0.85rem 0.95rem;
-  font: inherit;
-  resize: vertical;
-}
-
-.collaborate-field input:focus,
-.collaborate-field textarea:focus {
-  outline: 1px solid var(--gold);
-}
-
-.collaborate-message {
-  grid-column: 1 / -1;
-}
-
-.collaborate-submit {
-  display: block;
-  margin: 2.2rem auto 0;
-  min-width: 220px;
-  padding: 0.7rem 2.4rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--gold);
-  color: #fff;
-  font-size: 0.98rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.collaborate-submit:hover {
-  background: var(--ink);
+.collaborate-social-actions svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.5rem;
+  fill: currentColor;
 }
 
 .footer {
@@ -2431,12 +2421,6 @@ a.tag:focus-visible {
   }
 
   .dropdown a,
-  .dropdown-soon {
-    color: var(--bar-fg) !important;
-    opacity: 0.82;
-    padding: 0.55rem 0 0.55rem 0.2rem;
-  }
-
   .dropdown a:hover,
   .dropdown a.active {
     background: transparent;
@@ -2469,6 +2453,12 @@ a.tag:focus-visible {
 }
 
 @media (max-width: 768px) {
+  /* 手機版滿版顯示：拿掉左右留白，桌面版不受影響 */
+  .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .cv-certs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2477,10 +2467,6 @@ a.tag:focus-visible {
 
   .cert-card figcaption {
     font-size: 0.66rem;
-  }
-
-  .collaborate-grid {
-    grid-template-columns: 1fr;
   }
 
   .collaborate-title::before,
@@ -2528,7 +2514,7 @@ a.tag:focus-visible {
   }
 
   .article-full {
-    padding: 2rem 1.5rem;
+    padding: 2rem 0 0;
   }
 
   .article-title-full {
@@ -2542,7 +2528,12 @@ a.tag:focus-visible {
   }
 
   .article-content {
-    font-size: 18px;
+    font-size: calc(18px * var(--article-font-scale, 1));
+  }
+
+  /* 字級按鈕保留一點右邊距，避免緊貼螢幕邊緣不好點 */
+  .font-size-control {
+    padding-right: 0.75rem;
   }
 
   .article-footer {

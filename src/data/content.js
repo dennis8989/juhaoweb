@@ -37,12 +37,6 @@ export const directoryItems = [
 ]
 
 export const secondLevel = {
-  cases: [
-    { id: 'precocious', label: '性早熟', path: '/cases/precocious' },
-    { id: 'rapid', label: '青春期進展快', path: '/cases/rapid' },
-    { id: 'sga', label: '出生體重過輕', path: '/cases/sga' },
-    { id: 'iss', label: '特發性矮小', path: '/cases/iss' },
-  ],
   'bone-age': [
     { id: 'meaning', label: '骨齡評估的意義', path: '/bone-age/meaning' },
     { id: 'machine', label: '診所骨齡機介紹', path: '/bone-age/machine' },
@@ -65,17 +59,9 @@ export const secondLevel = {
 }
 
 export function firstNavChild(dirId) {
-  if (dirId === 'cases') return null
   const children = secondLevel[dirId]
   return children?.[0] || null
 }
-
-export const caseMenu = [
-  { id: 'precocious', label: '性早熟', path: '/cases/precocious' },
-  { id: 'rapid', label: '青春期較早', path: '/cases/rapid' },
-  { id: 'iss', label: '特發性矮小', path: '/cases/iss' },
-  { id: 'sga', label: '出生體重過輕併矮小', path: '/cases/sga' },
-]
 
 export const articleMenu = [
   { id: 'latest', label: '最新文章', path: '/articles/latest' },
@@ -247,22 +233,6 @@ export const sectionMeta = {
     title: '真實案例分享',
     intro: '以門診常見情境說明評估思路。個別案例將陸續整理刊出；若孩子有相關狀況，仍建議透過門診做個人化評估。',
   },
-  'cases/precocious': {
-    title: '真實案例：性早熟',
-    intro: '性早熟需同時看臨床表徵、生長曲線與必要時的骨齡與抽血，不能單憑「長得快」或「骨齡快」下診斷。',
-  },
-  'cases/rapid': {
-    title: '真實案例：青春期進展快／青春期較早',
-    intro: '青春期開始後若進展過快，可能壓縮剩餘生長空間。評估重點是發育速度、骨齡進展與預測身高。',
-  },
-  'cases/sga': {
-    title: '真實案例：出生體重過輕',
-    intro: '小於妊娠週數（SGA）的孩子，部分在幼兒期未能追趕生長，成年身高可能受到影響，需長期追蹤。',
-  },
-  'cases/iss': {
-    title: '真實案例：特發性矮小',
-    intro: '特發性矮小是指排除特定疾病後仍明顯矮小的狀態。是否治療，需對焦家族遺傳、預測身高與家庭期待。',
-  },
   'bone-age': {
     title: '骨齡檢測',
     intro: '骨齡反映體內成熟度，是輔助工具，不能單獨診斷矮小或性早熟。重點是找出家長真正擔心的核心問題。',
@@ -348,13 +318,6 @@ export const sectionMeta = {
     intro: '糖尿病、甲狀腺等兒童內分泌疾病之評估與轉介；本門診以成長發育為主，無常規內分泌用藥。',
     image: '/topic-heroes/endocrine.png',
   },
-}
-
-export const casePages = {
-  precocious: { relatedArticleCats: ['puberty', 'bone-age'] },
-  rapid: { relatedArticleCats: ['puberty', 'gnrh'] },
-  sga: { relatedArticleCats: ['sga'] },
-  iss: { relatedArticleCats: ['short-stature', 'gh'] },
 }
 
 function para(text) {
@@ -1176,10 +1139,6 @@ export function filterArticles({ dir, sub, articleCat } = {}) {
 
 const heroHeadlines = {
   cases: '用真實門診情境說清楚',
-  'cases/precocious': '性早熟，不能只看長得快',
-  'cases/rapid': '青春期進展快，剩餘生長空間會被壓縮',
-  'cases/sga': '出生體重過輕，不一定會自己追上',
-  'cases/iss': '找不到病因的矮小，仍需要清楚評估',
   'bone-age': '找到骨齡背後的問題',
   'bone-age/meaning': '骨齡快，不代表性早熟',
   'bone-age/machine': '門診當下完成骨齡評估',
