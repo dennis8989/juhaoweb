@@ -27,7 +27,7 @@ export const clinicLocations = [
 
 export const directoryItems = [
   { id: 'about', label: '關於我', path: '/about' },
-  { id: 'cases', label: '真實案例', path: '/cases' },
+  { id: 'cases', label: '衛教案例', path: '/cases' },
   { id: 'bone-age', label: '骨齡檢測', path: '/bone-age' },
   { id: 'short-stature', label: '身材矮小或落後', path: '/short-stature' },
   { id: 'puberty', label: '性早熟與青春期', path: '/puberty' },
@@ -230,7 +230,7 @@ export const specialties = [
 
 export const sectionMeta = {
   cases: {
-    title: '真實案例分享',
+    title: '衛教案例分享',
     intro: '以門診常見情境說明評估思路。個別案例將陸續整理刊出；若孩子有相關狀況，仍建議透過門診做個人化評估。',
   },
   'bone-age': {

@@ -655,7 +655,7 @@ function CasePage() {
   return (
     <section className="content-section topic-list">
       <div className="container">
-        <ArticleList dir="cases" emptyText="真實案例整理中，敬請期待。" />
+        <ArticleList dir="cases" emptyText="衛教案例整理中，敬請期待。" />
       </div>
     </section>
   )
