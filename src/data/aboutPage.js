@@ -13,12 +13,17 @@ import {
 import { SITE_ABOUT_ID } from './sitePages.js'
 
 const DEFAULT_BACKGROUND_PATH = 'patterns/warm-hero-texture.png'
+const DEFAULT_DOCTOR_PHOTO_PATH = 'doctor.jpg'
 
 let aboutCache = null
 let aboutInflight = null
 
 export function defaultSiteBackgroundUrl() {
   return `${import.meta.env.BASE_URL}${DEFAULT_BACKGROUND_PATH}`
+}
+
+export function defaultDoctorPhotoUrl() {
+  return `${import.meta.env.BASE_URL}${DEFAULT_DOCTOR_PHOTO_PATH}`
 }
 
 export function applySiteBackground(href) {
@@ -107,6 +112,7 @@ export function defaultAboutPage() {
       html: originToHtml(aboutOrigin),
     },
     backgroundImage: '',
+    doctorPhoto: '',
   }
 }
 
@@ -142,6 +148,7 @@ function mergeAboutPage(raw) {
       html: asText(source.origin?.html, fallback.origin.html),
     },
     backgroundImage: asText(source.backgroundImage, ''),
+    doctorPhoto: asText(source.doctorPhoto, ''),
   }
 }
 
@@ -170,6 +177,7 @@ export function aboutImageKeys(page) {
     ...collectImageKeys(page?.story?.html),
     ...collectImageKeys(page?.origin?.html),
     String(page?.backgroundImage || '').startsWith('public/') ? page.backgroundImage : '',
+    String(page?.doctorPhoto || '').startsWith('public/') ? page.doctorPhoto : '',
   ].filter(Boolean))]
 }
 
@@ -239,4 +247,24 @@ export function useAboutPage() {
   }, [])
 
   return page
+}
+
+/** Uploaded doctor photo, or the bundled one. Empty until the About page loads, so the old photo never flashes. */
+export function useDoctorPhoto() {
+  const [href, setHref] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    loadPublishedAbout()
+      .then((page) => (page.doctorPhoto ? resolveImageUrl(page.doctorPhoto) : ''))
+      .catch(() => '')
+      .then((next) => {
+        if (!cancelled) setHref(next || defaultDoctorPhotoUrl())
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return href
 }

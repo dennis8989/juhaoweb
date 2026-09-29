@@ -3,6 +3,7 @@ import { go } from '../lib/hash.js'
 import ArticleRichText from './ArticleRichText.jsx'
 import { uploadAdminImages } from '../data/adminArticles.js'
 import { getAdminAbout, saveAdminAbout } from '../data/adminAbout.js'
+import { defaultDoctorPhotoUrl } from '../data/aboutPage.js'
 import { useResolvedImage } from '../data/articlesRepository.js'
 
 function patchAt(list, index, partial) {
@@ -81,6 +82,55 @@ function SiteBackgroundEditor({ page, onChange, disabled }) {
       </div>
       <p className="admin-muted">儲存「關於我」後，導覽列與主題頁會一起更新。</p>
     </aside>
+  )
+}
+
+function DoctorPhotoEditor({ value, onChange, disabled }) {
+  const uploaded = useResolvedImage(value)
+  const preview = value ? uploaded : defaultDoctorPhotoUrl()
+  const [uploading, setUploading] = useState(false)
+
+  async function handleFile(event) {
+    const files = event.target.files
+    if (!files?.length) return
+    setUploading(true)
+    try {
+      const [key] = await uploadAdminImages(files, 'doctor')
+      if (key) onChange(key)
+    } catch (err) {
+      window.alert(err?.message || '醫師照片上傳失敗。')
+    } finally {
+      setUploading(false)
+      event.target.value = ''
+    }
+  }
+
+  return (
+    <div className="admin-field">
+      <span>醫師照片</span>
+      <div className="admin-doctor-photo">
+        <div className="admin-doctor-preview">
+          {preview ? <img src={preview} alt="醫師照片預覽" /> : <span>載入中…</span>}
+        </div>
+        <div className="admin-doctor-controls">
+          <p className="admin-muted">
+            {value ? '目前：已上傳的照片' : '目前：預設照片'}。顯示為正方形、以上半部為主，建議上傳直式或正方形照片。
+          </p>
+          <div className="admin-bg-actions">
+            <label className="admin-topic-upload">
+              {uploading ? '上傳中…' : '上傳醫師照片'}
+              <input type="file" accept="image/*" hidden disabled={disabled || uploading} onChange={handleFile} />
+            </label>
+            {value && (
+              <button type="button" className="btn-ghost" disabled={disabled || uploading} onClick={() => onChange('')}>
+                還原預設照片
+              </button>
+            )}
+          </div>
+          <p className="admin-muted">按「儲存關於我」後，公開頁才會換上新照片。</p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -182,6 +232,11 @@ export default function AboutEditor({ user, AdminBar, authErrorMessage }) {
               簡介
               <textarea rows={4} value={page.hero.lead} onChange={(event) => patchHero({ lead: event.target.value })} />
             </label>
+            <DoctorPhotoEditor
+              value={page.doctorPhoto}
+              disabled={busy}
+              onChange={(doctorPhoto) => setPage((current) => ({ ...current, doctorPhoto }))}
+            />
           </fieldset>
 
           <fieldset>

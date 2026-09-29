@@ -17,13 +17,12 @@ import {
   firstNavChild,
   secondLevel,
 } from './data/content.js'
-import { useAboutPage, useSiteBackground } from './data/aboutPage.js'
+import { useAboutPage, useDoctorPhoto, useSiteBackground } from './data/aboutPage.js'
 import { useSectionMeta } from './data/topicsPage.js'
 import { recordArticleView, useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
-const doctorSrc = `${import.meta.env.BASE_URL}doctor.jpg`
 // The doctor's photo only appears on the production site; dev and local builds leave it out.
 const showDoctorPhoto = SITE_ENV === 'amplify'
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
@@ -501,6 +500,7 @@ function AboutHtml({ html, className }) {
 
 function AboutPage() {
   const page = useAboutPage()
+  const doctorPhoto = useDoctorPhoto()
   return (
     <>
       <section className="about-intro warm-hero-surface">
@@ -557,7 +557,7 @@ function AboutPage() {
           {showDoctorPhoto && (
             <aside className="about-portrait">
               <div className="portrait-frame">
-                <img className="portrait-photo" src={doctorSrc} alt={page.hero.name} />
+                {doctorPhoto && <img className="portrait-photo" src={doctorPhoto} alt={page.hero.name} />}
               </div>
             </aside>
           )}
