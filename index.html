@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="fonts-loading">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -10,6 +10,13 @@
     <link href="https://font.emtech.cc/css/GenRyuMinTW/400" rel="stylesheet" />
     <link href="https://font.emtech.cc/css/GenRyuMinTW/600" rel="stylesheet" />
     <link href="https://font.emtech.cc/css/Iansui/400" rel="stylesheet" />
+    <!-- 等網頁字型載好再顯示畫面（src/lib/fontGate.js）；萬一程式沒跑，4 秒後也會自動顯示 -->
+    <style>
+      #root { transition: opacity 0.25s ease; }
+      html.fonts-loading #root { opacity: 0; animation: fonts-failsafe 0s linear 4s forwards; }
+      @keyframes fonts-failsafe { to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { #root { transition: none; } }
+    </style>
     <title>李如浩醫師 | 兒童成長發育專科 | 小兒內分泌</title>
     <meta name="description" content="李如浩醫師，兒童成長發育專科。以醫學實證與臨床經驗，陪伴孩子的身高、骨齡、性早熟、青春期與生長激素治療。" />
     <meta name="author" content="李如浩醫師" />
