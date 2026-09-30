@@ -5,7 +5,7 @@ import AdminApp from './admin/AdminApp.jsx'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
 import { articleHasAllTags, articleTags, collectArticleTags, formatTagList, normalizeTag, toggleTag, uniqueTags, tagListPath } from './lib/tags.js'
-import { SITE_ENV, isAmplifyConfigured } from './lib/amplify.js'
+import { isAmplifyConfigured } from './lib/amplify.js'
 import { setAnalyticsEnabled } from './lib/analytics.js'
 import {
   APPOINTMENT_URL,
@@ -17,14 +17,12 @@ import {
   firstNavChild,
   secondLevel,
 } from './data/content.js'
-import { useAboutPage, useDoctorPhoto, useSiteBackground } from './data/aboutPage.js'
+import { doctorPhotoStyle, useAboutPage, useDoctorPhoto, useSiteBackground } from './data/aboutPage.js'
 import { useSectionMeta } from './data/topicsPage.js'
 import { recordArticleView, useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
-// The doctor's photo only appears on the production site; dev and local builds leave it out.
-const showDoctorPhoto = SITE_ENV === 'amplify'
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
 
 function ArticleDate({ value, className }) {
@@ -554,13 +552,18 @@ function AboutPage() {
               </a>
             </div>
           </div>
-          {showDoctorPhoto && (
-            <aside className="about-portrait">
-              <div className="portrait-frame">
-                {doctorPhoto && <img className="portrait-photo" src={doctorPhoto} alt={page.hero.name} />}
-              </div>
-            </aside>
-          )}
+          <aside className="about-portrait">
+            <div className="portrait-frame">
+              {doctorPhoto.src && (
+                <img
+                  className="portrait-photo"
+                  src={doctorPhoto.src}
+                  alt={page.hero.name}
+                  style={doctorPhotoStyle(doctorPhoto.frame)}
+                />
+              )}
+            </div>
+          </aside>
         </div>
       </section>
 

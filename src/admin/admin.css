@@ -727,24 +727,38 @@
 
 .admin-doctor-preview {
   flex: 0 0 auto;
-  width: 160px;
+  width: min(100%, 260px);
   aspect-ratio: 1;
   border: 1px solid var(--border-color);
-  background: #fff;
+  /* The public page texture, so a transparent photo previews as it will look */
+  background-color: var(--warm-hero);
+  background-image: var(--warm-hero-stack);
+  background-size: 100% 100%, 220px auto;
+  background-repeat: no-repeat, repeat;
   display: grid;
   place-items: center;
   overflow: hidden;
   color: var(--text-muted);
   font-size: 0.9rem;
+  touch-action: none;
+  user-select: none;
 }
 
-/* Same crop as .portrait-photo on the public page */
+.admin-doctor-preview.is-draggable {
+  cursor: grab;
+}
+
+.admin-doctor-preview.is-draggable:active {
+  cursor: grabbing;
+}
+
+/* Same framing as .portrait-photo on the public page; zoom and position are inline */
 .admin-doctor-preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
   display: block;
+  pointer-events: none;
 }
 
 .admin-doctor-controls {
@@ -756,6 +770,13 @@
 .admin-doctor-controls .admin-muted {
   margin: 0;
   line-height: 1.6;
+}
+
+.admin-doctor-zoom input[type='range'] {
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--gold);
 }
 
 .admin-about-layout {

@@ -690,7 +690,8 @@
   width: 100%;
   max-width: 420px;
   aspect-ratio: 1;
-  background: color-mix(in srgb, var(--ink) 8%, var(--paper));
+  /* No fill, so a background-removed photo shows the page texture behind it */
+  background: transparent;
   border-radius: 0;
   overflow: hidden;
   padding: 0;
@@ -700,8 +701,8 @@
 .portrait-photo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  /* Zoom and position come from doctorPhotoStyle() */
+  object-fit: contain;
   display: block;
 }
 

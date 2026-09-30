@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { go } from '../lib/hash.js'
 import ArticleRichText from './ArticleRichText.jsx'
 import { uploadAdminImages } from '../data/adminArticles.js'
 import { getAdminAbout, saveAdminAbout } from '../data/adminAbout.js'
-import { defaultDoctorPhotoUrl } from '../data/aboutPage.js'
+import {
+  DOCTOR_PHOTO_ZOOM_MAX,
+  DOCTOR_PHOTO_ZOOM_MIN,
+  defaultDoctorPhotoFrame,
+  defaultDoctorPhotoUrl,
+  doctorPhotoStyle,
+  normalizeDoctorPhotoFrame,
+} from '../data/aboutPage.js'
 import { useResolvedImage } from '../data/articlesRepository.js'
 
 function patchAt(list, index, partial) {
@@ -85,10 +92,21 @@ function SiteBackgroundEditor({ page, onChange, disabled }) {
   )
 }
 
-function DoctorPhotoEditor({ value, onChange, disabled }) {
+function clampPercent(value) {
+  return Math.round(Math.min(100, Math.max(0, value)) * 10) / 10
+}
+
+function DoctorPhotoEditor({ value, frame, onChange, disabled }) {
   const uploaded = useResolvedImage(value)
   const preview = value ? uploaded : defaultDoctorPhotoUrl()
   const [uploading, setUploading] = useState(false)
+  const dragRef = useRef(null)
+  const current = normalizeDoctorPhotoFrame(frame)
+  const locked = disabled || uploading
+
+  function setFrame(partial) {
+    onChange({ doctorPhotoFrame: { ...current, ...partial } })
+  }
 
   async function handleFile(event) {
     const files = event.target.files
@@ -96,7 +114,7 @@ function DoctorPhotoEditor({ value, onChange, disabled }) {
     setUploading(true)
     try {
       const [key] = await uploadAdminImages(files, 'doctor')
-      if (key) onChange(key)
+      if (key) onChange({ doctorPhoto: key, doctorPhotoFrame: defaultDoctorPhotoFrame() })
     } catch (err) {
       window.alert(err?.message || '醫師照片上傳失敗。')
     } finally {
@@ -105,29 +123,94 @@ function DoctorPhotoEditor({ value, onChange, disabled }) {
     }
   }
 
+  function handlePointerDown(event) {
+    if (locked || event.button !== 0) return
+    const img = event.currentTarget.querySelector('img')
+    if (!img?.naturalWidth) return
+    const box = event.currentTarget.getBoundingClientRect()
+    const fit = Math.min(box.width / img.naturalWidth, box.height / img.naturalHeight)
+    // How far the photo can travel on each axis; negative once it is larger than the frame.
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      frame: current,
+      roomX: box.width - img.naturalWidth * fit * current.zoom,
+      roomY: box.height - img.naturalHeight * fit * current.zoom,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    event.preventDefault()
+  }
+
+  function handlePointerMove(event) {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const shift = (start, delta, room) => (Math.abs(room) < 1 ? start : clampPercent(start + (delta * 100) / room))
+    onChange({
+      doctorPhotoFrame: {
+        ...drag.frame,
+        x: shift(drag.frame.x, event.clientX - drag.startX, drag.roomX),
+        y: shift(drag.frame.y, event.clientY - drag.startY, drag.roomY),
+      },
+    })
+  }
+
+  function handlePointerEnd(event) {
+    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null
+  }
+
   return (
     <div className="admin-field">
       <span>醫師照片</span>
       <div className="admin-doctor-photo">
-        <div className="admin-doctor-preview">
-          {preview ? <img src={preview} alt="醫師照片預覽" /> : <span>載入中…</span>}
+        <div
+          className={`admin-doctor-preview${preview && !locked ? ' is-draggable' : ''}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+        >
+          {preview
+            ? <img src={preview} alt="醫師照片預覽" draggable={false} style={doctorPhotoStyle(current)} />
+            : <span>載入中…</span>}
         </div>
         <div className="admin-doctor-controls">
           <p className="admin-muted">
-            {value ? '目前：已上傳的照片' : '目前：預設照片'}。顯示為正方形、以上半部為主，建議上傳直式或正方形照片。
+            {value ? '目前：已上傳的照片' : '目前：預設照片'}。去背（透明背景）的 PNG 會直接透出網站背景。
           </p>
+          <label className="admin-doctor-zoom">
+            <span>縮放 {Math.round(current.zoom * 100)}%</span>
+            <input
+              type="range"
+              min={DOCTOR_PHOTO_ZOOM_MIN * 100}
+              max={DOCTOR_PHOTO_ZOOM_MAX * 100}
+              step={5}
+              value={Math.round(current.zoom * 100)}
+              disabled={locked}
+              onChange={(event) => setFrame({ zoom: Number(event.target.value) / 100 })}
+            />
+          </label>
+          <p className="admin-muted">100% 為完整顯示整張照片；在左邊預覽上拖曳可移動照片位置。</p>
           <div className="admin-bg-actions">
             <label className="admin-topic-upload">
               {uploading ? '上傳中…' : '上傳醫師照片'}
-              <input type="file" accept="image/*" hidden disabled={disabled || uploading} onChange={handleFile} />
+              <input type="file" accept="image/*" hidden disabled={locked} onChange={handleFile} />
             </label>
+            <button type="button" className="btn-ghost" disabled={locked} onClick={() => setFrame(defaultDoctorPhotoFrame())}>
+              重設縮放與位置
+            </button>
             {value && (
-              <button type="button" className="btn-ghost" disabled={disabled || uploading} onClick={() => onChange('')}>
+              <button
+                type="button"
+                className="btn-ghost"
+                disabled={locked}
+                onClick={() => onChange({ doctorPhoto: '', doctorPhotoFrame: defaultDoctorPhotoFrame() })}
+              >
                 還原預設照片
               </button>
             )}
           </div>
-          <p className="admin-muted">按「儲存關於我」後，公開頁才會換上新照片。</p>
+          <p className="admin-muted">按「儲存關於我」後，公開頁才會換上新照片與新的縮放位置。</p>
         </div>
       </div>
     </div>
@@ -234,8 +317,9 @@ export default function AboutEditor({ user, AdminBar, authErrorMessage }) {
             </label>
             <DoctorPhotoEditor
               value={page.doctorPhoto}
+              frame={page.doctorPhotoFrame}
               disabled={busy}
-              onChange={(doctorPhoto) => setPage((current) => ({ ...current, doctorPhoto }))}
+              onChange={(partial) => setPage((current) => ({ ...current, ...partial }))}
             />
           </fieldset>
 

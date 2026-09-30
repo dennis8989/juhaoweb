@@ -26,6 +26,37 @@ export function defaultDoctorPhotoUrl() {
   return `${import.meta.env.BASE_URL}${DEFAULT_DOCTOR_PHOTO_PATH}`
 }
 
+export const DOCTOR_PHOTO_ZOOM_MIN = 0.5
+export const DOCTOR_PHOTO_ZOOM_MAX = 3
+
+/** Zoom 1 fits the whole photo in the square frame; x/y (0–100) is the point of the photo pinned to the same point of the frame. */
+export function defaultDoctorPhotoFrame() {
+  return { zoom: 1, x: 50, y: 0 }
+}
+
+function clampNumber(value, min, max, fallback) {
+  if (value === null || value === undefined || value === '') return fallback
+  const number = Number(value)
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback
+}
+
+export function normalizeDoctorPhotoFrame(raw) {
+  const fallback = defaultDoctorPhotoFrame()
+  const source = raw && typeof raw === 'object' ? raw : {}
+  return {
+    zoom: clampNumber(source.zoom, DOCTOR_PHOTO_ZOOM_MIN, DOCTOR_PHOTO_ZOOM_MAX, fallback.zoom),
+    x: clampNumber(source.x, 0, 100, fallback.x),
+    y: clampNumber(source.y, 0, 100, fallback.y),
+  }
+}
+
+/** Inline style for .portrait-photo: zooming keeps the (x%, y%) point in place, so panning never reveals past the photo's edges. */
+export function doctorPhotoStyle(frame) {
+  const { zoom, x, y } = normalizeDoctorPhotoFrame(frame)
+  const position = `${x}% ${y}%`
+  return { objectPosition: position, transformOrigin: position, transform: `scale(${zoom})` }
+}
+
 export function applySiteBackground(href) {
   if (typeof document === 'undefined') return
   const next = href || defaultSiteBackgroundUrl()
@@ -113,6 +144,7 @@ export function defaultAboutPage() {
     },
     backgroundImage: '',
     doctorPhoto: '',
+    doctorPhotoFrame: defaultDoctorPhotoFrame(),
   }
 }
 
@@ -149,6 +181,7 @@ function mergeAboutPage(raw) {
     },
     backgroundImage: asText(source.backgroundImage, ''),
     doctorPhoto: asText(source.doctorPhoto, ''),
+    doctorPhotoFrame: normalizeDoctorPhotoFrame(source.doctorPhotoFrame),
   }
 }
 
@@ -249,22 +282,25 @@ export function useAboutPage() {
   return page
 }
 
-/** Uploaded doctor photo, or the bundled one. Empty until the About page loads, so the old photo never flashes. */
+/** Uploaded doctor photo (or the bundled one) with its framing. src stays empty until the About page loads, so the old photo never flashes. */
 export function useDoctorPhoto() {
-  const [href, setHref] = useState('')
+  const [photo, setPhoto] = useState(() => ({ src: '', frame: defaultDoctorPhotoFrame() }))
 
   useEffect(() => {
     let cancelled = false
     loadPublishedAbout()
-      .then((page) => (page.doctorPhoto ? resolveImageUrl(page.doctorPhoto) : ''))
-      .catch(() => '')
+      .then(async (page) => {
+        const src = page.doctorPhoto ? await resolveImageUrl(page.doctorPhoto).catch(() => '') : ''
+        return { src: src || defaultDoctorPhotoUrl(), frame: page.doctorPhotoFrame }
+      })
+      .catch(() => ({ src: defaultDoctorPhotoUrl(), frame: defaultDoctorPhotoFrame() }))
       .then((next) => {
-        if (!cancelled) setHref(next || defaultDoctorPhotoUrl())
+        if (!cancelled) setPhoto(next)
       })
     return () => {
       cancelled = true
     }
   }, [])
 
-  return href
+  return photo
 }
