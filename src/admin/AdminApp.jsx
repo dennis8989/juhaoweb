@@ -736,6 +736,7 @@ function Editor({ user, articleId }) {
           <label>
             摘要
             <textarea rows={3} value={form.excerpt} onChange={(event) => patch({ excerpt: event.target.value })} />
+            <span className="admin-muted">也會作為 Google 搜尋結果與分享的描述，建議 120 字內；沒填時取內文開頭。</span>
           </label>
           <div className="admin-field">
             <span>內文</span>

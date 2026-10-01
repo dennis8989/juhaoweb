@@ -21,6 +21,7 @@ import { doctorPhotoStyle, useAboutPage, useDoctorPhoto, useSiteBackground } fro
 import { useSectionMeta } from './data/topicsPage.js'
 import { recordArticleView, useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
+import { pageMetaFor, usePageMeta } from './lib/seo.js'
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
@@ -147,6 +148,7 @@ function App() {
   const activeSub = route.view === activeDir ? route.sub : null
   const isTopicPage = directoryItems.some((item) => item.id === route.view && item.id !== 'about')
   const topicMeta = useSectionMeta(isTopicPage ? route.view : null, isTopicPage ? route.sub : null)
+  usePageMeta(pageMetaFor({ route, topicMeta, articleState }))
 
   const navbar = (
     <Navbar

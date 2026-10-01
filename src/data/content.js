@@ -1,6 +1,8 @@
 export const APPOINTMENT_URL = 'https://master.d29yyigp5o4a8q.amplifyapp.com/EntryPage'
 export const FACEBOOK_PAGE_URL = 'https://www.facebook.com/profile.php?id=61564963711521'
 export const INSTAGRAM_URL = 'https://www.instagram.com/lee_jhow'
+// The one domain search engines should index; other hostnames serving the site are noindex.
+export const SITE_ORIGIN = 'https://ruhowgrow.com'
 
 export const clinicLocations = [
   {
