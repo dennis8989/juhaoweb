@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { generateClient } from 'aws-amplify/data'
 import { getUrl } from 'aws-amplify/storage'
 import { SITE_ENV, isAmplifyConfigured } from '../lib/amplify.js'
 import { articleHasTag } from '../lib/tags.js'
 import { isSitePageId } from './sitePages.js'
 
+// Storage images are served through signed URLs that S3 stops honoring after about an hour, so every
+// cached URL carries its expiry and is signed again before then. expiresAt 0 means it never expires.
 const IMAGE_CACHE = new Map()
+const SIGNED_URL_MARGIN_MS = 5 * 60 * 1000
+const LIST_MAX_AGE_MS = 50 * 60 * 1000
 let listCache = null
 let listInflight = null
 
@@ -22,35 +26,99 @@ function isStoragePath(value) {
   return value.startsWith('public/') || value.startsWith('s3://')
 }
 
-export async function resolveImageUrl(src) {
-  if (!src) return ''
-  if (isHttpUrl(src)) return src
-  if (IMAGE_CACHE.has(src)) return IMAGE_CACHE.get(src)
+/** When a signed S3 URL stops working: X-Amz-Date plus X-Amz-Expires, or 0 when the URL isn't signed. */
+function signedUrlExpiry(href) {
+  try {
+    const params = new URL(href).searchParams
+    const stamp = params.get('X-Amz-Date') || ''
+    const seconds = Number(params.get('X-Amz-Expires'))
+    const match = stamp.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/)
+    if (!match || !seconds) return 0
+    const [, y, mo, d, h, mi, se] = match
+    return Date.UTC(y, mo - 1, d, h, mi, se) + seconds * 1000
+  } catch {
+    return 0
+  }
+}
+
+function isUsable(entry) {
+  return Boolean(entry) && (!entry.expiresAt || entry.expiresAt - Date.now() > SIGNED_URL_MARGIN_MS)
+}
+
+async function resolveImage(src, { fresh = false } = {}) {
+  if (!src) return { href: '', expiresAt: 0 }
+  if (isHttpUrl(src)) return { href: src, expiresAt: 0 }
+  const cached = IMAGE_CACHE.get(src)
+  if (!fresh && isUsable(cached)) return cached
 
   if (isAmplifyConfigured() && isStoragePath(src)) {
     try {
       const path = src.startsWith('s3://') ? src.replace(/^s3:\/\/[^/]+\//, '') : src
-      const { url } = await getUrl({
+      const { url, expiresAt } = await getUrl({
         path,
         options: { expiresIn: 3600, validateObjectExistence: false },
       })
       const href = url.toString()
-      IMAGE_CACHE.set(src, href)
-      return href
+      // The signature can end sooner than asked when the guest credentials do, and the URL says when.
+      const entry = { href, expiresAt: signedUrlExpiry(href) || expiresAt?.getTime?.() || Date.now() + 3600 * 1000 }
+      IMAGE_CACHE.set(src, entry)
+      return entry
     } catch {
-      // Fall through to site-relative path.
+      // Signing failed (e.g. no guest credentials right now): show the site-relative path this time, but
+      // don't cache it, so the next request signs again instead of keeping a broken URL.
+      return { href: siteAssetUrl(src), expiresAt: 0 }
     }
   }
 
-  const href = siteAssetUrl(src)
-  IMAGE_CACHE.set(src, href)
-  return href
+  const entry = { href: siteAssetUrl(src), expiresAt: 0 }
+  IMAGE_CACHE.set(src, entry)
+  return entry
 }
 
+/** A displayable URL for an image key. `fresh` signs it again even if a cached URL still looks valid. */
+export async function resolveImageUrl(src, options) {
+  return (await resolveImage(src, options)).href
+}
+
+/**
+ * Signs a storage image again, once per element, after it failed to load (its URL went stale while the
+ * page sat open, or signing had failed). Skips article HTML that still shows the raw key awaiting its URL.
+ */
+export async function retryStaleImage(img, storageKey) {
+  if (!img || !storageKey || !isStoragePath(storageKey) || img.dataset.resignedKey === storageKey) return
+  if (img.getAttribute('src') === storageKey) return
+  img.dataset.resignedKey = storageKey
+  const href = await resolveImageUrl(storageKey, { fresh: true })
+  if (href && href !== img.src) img.src = href
+}
+
+/** Callback ref for a container of article HTML: retries its stale storage images (they carry data-s3-key). */
+export function useStaleImageRetry() {
+  const detach = useRef(null)
+  return useCallback((node) => {
+    detach.current?.()
+    detach.current = null
+    if (!node) return
+    // Image errors don't bubble, so listen in the capture phase.
+    const onError = (event) => {
+      const img = event.target
+      if (img?.tagName === 'IMG') retryStaleImage(img, img.getAttribute('data-s3-key'))
+    }
+    node.addEventListener('error', onError, true)
+    detach.current = () => node.removeEventListener('error', onError, true)
+  }, [])
+}
+
+/** Article with `images` as displayable URLs and `imageKeys` as the stored keys, plus when the URLs go stale. */
 async function withResolvedImages(article) {
   if (!article) return null
-  const images = await Promise.all((article.images || []).filter(Boolean).map(resolveImageUrl))
-  return { ...article, images }
+  const imageKeys = (article.images || []).filter(Boolean)
+  const entries = await Promise.all(imageKeys.map((key) => resolveImage(key)))
+  const expiries = entries.map((entry) => entry.expiresAt).filter(Boolean)
+  return {
+    article: { ...article, images: entries.map((entry) => entry.href), imageKeys },
+    expiresAt: expiries.length ? Math.min(...expiries) : 0,
+  }
 }
 
 function getClient() {
@@ -85,7 +153,13 @@ async function fetchAllPublished() {
   } while (nextToken)
 
   const published = collected.filter((item) => item.status === 'published' && !isSitePageId(item.id))
-  return Promise.all(published.map(withResolvedImages))
+  const resolved = await Promise.all(published.map(withResolvedImages))
+  // Fetch again before the first signed image URL in the list stops working.
+  const staleAt = Math.min(
+    Date.now() + LIST_MAX_AGE_MS,
+    ...resolved.map((entry) => entry.expiresAt).filter(Boolean).map((time) => time - SIGNED_URL_MARGIN_MS),
+  )
+  return { items: resolved.map((entry) => entry.article), staleAt }
 }
 
 export function invalidatePublishedArticles() {
@@ -96,12 +170,12 @@ export function invalidatePublishedArticles() {
 
 export async function listPublishedArticles({ force } = {}) {
   if (force) invalidatePublishedArticles()
-  if (listCache) return listCache
+  if (listCache && Date.now() < listCache.staleAt) return listCache.items
   if (!listInflight) {
     listInflight = fetchAllPublished()
-      .then((items) => {
-        listCache = items
-        return items
+      .then((result) => {
+        listCache = result
+        return result.items
       })
       .finally(() => {
         listInflight = null
@@ -120,7 +194,7 @@ export async function getArticle(id) {
   if (!client) return null
   const { data, errors } = await client.queries.getPublishedArticle({ id })
   throwIfErrors(errors)
-  const article = await withResolvedImages(data)
+  const article = (await withResolvedImages(data))?.article
   if (article && article.status === 'published') return article
   return null
 }

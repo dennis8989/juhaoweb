@@ -19,7 +19,14 @@ import {
 } from './data/content.js'
 import { doctorPhotoStyle, useAboutPage, useDoctorPhoto, useSiteBackground } from './data/aboutPage.js'
 import { useSectionMeta } from './data/topicsPage.js'
-import { recordArticleView, useArticle, usePublishedArticles, useResolvedImage } from './data/articlesRepository.js'
+import {
+  recordArticleView,
+  retryStaleImage,
+  useArticle,
+  usePublishedArticles,
+  useResolvedImage,
+  useStaleImageRetry,
+} from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 import { pageMetaFor, usePageMeta } from './lib/seo.js'
 
@@ -484,6 +491,7 @@ function SectionFrame({ title, intro, children }) {
 
 function AboutHtml({ html, className }) {
   const [resolved, setResolved] = useState(() => sanitizeArticleHtml(html || ''))
+  const retryRef = useStaleImageRetry()
 
   useEffect(() => {
     let cancelled = false
@@ -495,7 +503,7 @@ function AboutHtml({ html, className }) {
     }
   }, [html])
 
-  return <div className={className} dangerouslySetInnerHTML={{ __html: resolved }} />
+  return <div ref={retryRef} className={className} dangerouslySetInnerHTML={{ __html: resolved }} />
 }
 
 function AboutPage() {
@@ -765,7 +773,12 @@ function ArticleGrid({ items, emptyText }) {
       {items.map((article) => (
         <a key={article.id} className="article-card" href={toHref(`/article/${article.id}`)} onClick={handleRouteClick(`/article/${article.id}`)}>
           {article.images?.[0] && (
-            <img className="article-card-thumb" src={article.images[0]} alt="" />
+            <img
+              className="article-card-thumb"
+              src={article.images[0]}
+              alt=""
+              onError={(event) => retryStaleImage(event.currentTarget, article.imageKeys?.[0])}
+            />
           )}
           <div className="article-card-content">
             <ArticleDate value={article.createdAt} className="article-card-date" />
@@ -846,6 +859,7 @@ function ArticleBody({ article }) {
   const source = contentToHtml(article.content)
   const rich = looksLikeHtml(article.content)
   const [html, setHtml] = useState(() => (rich ? sanitizeArticleHtml(source) : ''))
+  const retryRef = useStaleImageRetry()
 
   useEffect(() => {
     if (!rich) return undefined
@@ -859,7 +873,7 @@ function ArticleBody({ article }) {
   }, [rich, source])
 
   if (rich) {
-    return <div className="article-content article-content-rich" dangerouslySetInnerHTML={{ __html: html }} />
+    return <div ref={retryRef} className="article-content article-content-rich" dangerouslySetInnerHTML={{ __html: html }} />
   }
 
   if (article.content?.length) {
@@ -938,6 +952,7 @@ function ArticleDetail({ id }) {
                   <img
                     src={src}
                     alt={article.images.length > 1 ? `${article.title}（${index + 1}）` : article.title}
+                    onError={(event) => retryStaleImage(event.currentTarget, article.imageKeys?.[index])}
                   />
                 </figure>
               ))}
