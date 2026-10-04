@@ -12,6 +12,7 @@ import {
   normalizeDoctorPhotoFrame,
 } from '../data/aboutPage.js'
 import { useResolvedImage } from '../data/articlesRepository.js'
+import { shrinkImageFile } from '../lib/imageResize.js'
 
 function patchAt(list, index, partial) {
   return list.map((item, i) => (i === index ? { ...item, ...partial } : item))
@@ -113,7 +114,9 @@ function DoctorPhotoEditor({ value, frame, onChange, disabled }) {
     if (!files?.length) return
     setUploading(true)
     try {
-      const [key] = await uploadAdminImages(files, 'doctor')
+      // The portrait shows at most 420px wide (up to 300% zoom), so a 1200px WebP is plenty and far lighter.
+      const photo = await shrinkImageFile(files[0])
+      const [key] = await uploadAdminImages([photo], 'doctor')
       if (key) onChange({ doctorPhoto: key, doctorPhotoFrame: defaultDoctorPhotoFrame() })
     } catch (err) {
       window.alert(err?.message || '醫師照片上傳失敗。')

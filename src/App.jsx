@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
-import AdminApp from './admin/AdminApp.jsx'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
 import { formatArticleDate, toDateInputValue } from './lib/dates.js'
 import { articleHasAllTags, articleTags, collectArticleTags, formatTagList, normalizeTag, toggleTag, uniqueTags, tagListPath } from './lib/tags.js'
@@ -29,6 +28,9 @@ import {
 } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 import { pageMetaFor, usePageMeta } from './lib/seo.js'
+
+// The admin (with its rich-text editor) is a separate download, fetched only when /admin is opened.
+const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 
 const logoSrc = `${import.meta.env.BASE_URL}logo.png`
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${String(path).replace(/^\//, '')}`
@@ -181,7 +183,9 @@ function App() {
     return (
       <div className="app">
         {navbar}
-        <AdminApp route={route} user={user} setUser={setUser} />
+        <Suspense fallback={<p className="admin-loading" role="status">後台載入中…</p>}>
+          <AdminApp route={route} user={user} setUser={setUser} />
+        </Suspense>
       </div>
     )
   }
@@ -509,6 +513,8 @@ function AboutHtml({ html, className }) {
 function AboutPage() {
   const page = useAboutPage()
   const doctorPhoto = useDoctorPhoto()
+  // The photo fades in once it has fully downloaded, instead of appearing in pieces.
+  const [photoShown, setPhotoShown] = useState('')
   return (
     <>
       <section className="about-intro warm-hero-surface">
@@ -566,10 +572,15 @@ function AboutPage() {
             <div className="portrait-frame">
               {doctorPhoto.src && (
                 <img
-                  className="portrait-photo"
+                  ref={(img) => {
+                    // Already in the browser cache: no load event to wait for.
+                    if (img?.complete && img.naturalWidth) setPhotoShown(doctorPhoto.src)
+                  }}
+                  className={`portrait-photo${photoShown === doctorPhoto.src ? ' is-loaded' : ''}`}
                   src={doctorPhoto.src}
                   alt={page.hero.name}
                   style={doctorPhotoStyle(doctorPhoto.frame)}
+                  onLoad={() => setPhotoShown(doctorPhoto.src)}
                 />
               )}
             </div>

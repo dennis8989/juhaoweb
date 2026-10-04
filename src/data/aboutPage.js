@@ -282,17 +282,49 @@ export function useAboutPage() {
   return page
 }
 
+let doctorPhotoInflight = null
+
+// Callers that overlap (the early preload and the About page) share one signing, so they get the
+// same URL and the browser downloads the photo once.
+function loadDoctorPhoto() {
+  if (!doctorPhotoInflight) {
+    doctorPhotoInflight = (async () => {
+      const page = await loadPublishedAbout()
+      const src = page.doctorPhoto ? await resolveImageUrl(page.doctorPhoto).catch(() => '') : ''
+      return { src: src || defaultDoctorPhotoUrl(), frame: page.doctorPhotoFrame }
+    })().finally(() => {
+      doctorPhotoInflight = null
+    })
+  }
+  return doctorPhotoInflight
+}
+
+/**
+ * Starts loading the doctor photo before the page renders, at high priority, so it isn't queued behind
+ * everything else. The signed URL is cached, so the <img> on the About page reuses this same download.
+ * Resolves once the photo has downloaded (or failed), so the page can be revealed together with it.
+ */
+export function preloadDoctorPhoto() {
+  if (typeof Image === 'undefined') return Promise.resolve()
+  return loadDoctorPhoto()
+    .then(({ src }) => new Promise((resolve) => {
+      const img = new Image()
+      img.fetchPriority = 'high'
+      // Settles either way: a missing photo must not keep the page hidden.
+      img.onload = () => resolve()
+      img.onerror = () => resolve()
+      img.src = src
+    }))
+    .catch(() => {})
+}
+
 /** Uploaded doctor photo (or the bundled one) with its framing. src stays empty until the About page loads, so the old photo never flashes. */
 export function useDoctorPhoto() {
   const [photo, setPhoto] = useState(() => ({ src: '', frame: defaultDoctorPhotoFrame() }))
 
   useEffect(() => {
     let cancelled = false
-    loadPublishedAbout()
-      .then(async (page) => {
-        const src = page.doctorPhoto ? await resolveImageUrl(page.doctorPhoto).catch(() => '') : ''
-        return { src: src || defaultDoctorPhotoUrl(), frame: page.doctorPhotoFrame }
-      })
+    loadDoctorPhoto()
       .catch(() => ({ src: defaultDoctorPhotoUrl(), frame: defaultDoctorPhotoFrame() }))
       .then((next) => {
         if (!cancelled) setPhoto(next)

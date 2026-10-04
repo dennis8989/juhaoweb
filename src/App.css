@@ -704,6 +704,19 @@
   /* Zoom and position come from doctorPhotoStyle() */
   object-fit: contain;
   display: block;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+/* Fades in once the whole photo has downloaded */
+.portrait-photo.is-loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portrait-photo {
+    transition: none;
+  }
 }
 
 .cv-band {

@@ -1,11 +1,17 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { configureAmplify } from './lib/amplify.js'
+import { parseHash } from './lib/hash.js'
+import { preloadDoctorPhoto } from './data/aboutPage.js'
 import { revealWhenFontsReady } from './lib/fontGate.js'
 import App from './App.jsx'
 import './index.css'
 
 configureAmplify()
+
+// The About page leads with the doctor's photo: fetch it now instead of after the first render, and
+// reveal the page only once it has arrived (see fontGate.js for the time limit).
+const doctorPhotoReady = parseHash().view === 'about' ? preloadDoctorPhoto() : null
 
 document.documentElement.style.setProperty(
   '--warm-hero-pattern',
@@ -14,7 +20,7 @@ document.documentElement.style.setProperty(
 
 function FontGate() {
   useEffect(() => {
-    revealWhenFontsReady()
+    revealWhenFontsReady({ alsoWaitFor: doctorPhotoReady })
   }, [])
   return null
 }
