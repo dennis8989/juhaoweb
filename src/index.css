@@ -187,20 +187,9 @@ button, input, textarea, select {
   animation: fadeIn 0.55s ease-out;
 }
 
-/* 新內容的網頁字型還沒載好時立刻藏起來，載好再淡入（src/lib/fontGate.js） */
-main.page {
-  transition: opacity 0.25s ease;
-}
-
-main.page.fonts-pending {
-  opacity: 0;
-  transition: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  main.page {
-    transition: none;
-  }
+/* 新加進來的區塊，網頁字型還沒載好時先藏起來（src/lib/fontGate.js） */
+.fonts-pending {
+  opacity: 0 !important;
 }
 
 .slide-in {

@@ -34,60 +34,78 @@ export function revealWhenFontsReady({ alsoWaitFor = null } = {}) {
 
 // 第一個畫面之後，文章、分類、關於我的正式內容才從後台載入，換頁也會畫出新的文字。
 // 字型檔是依文字分成很多小檔，新出現的字常要再下載，瀏覽器會先用系統字、下載完再換字。
-// 所以 container 裡一出現字型還沒載好的新文字，就先把它藏起來，等畫面裡看得到的字載好再淡入，
-// 一樣最多等 MAX_WAIT_MS。已經顯示過的文字（包括等到時間上限才顯示的）不會讓畫面再藏一次。
-// 回傳停止監看的函式。
+// 所以 container 裡新加進來的區塊，若看得到的文字字型還沒載好，就先只把那一塊藏起來，
+// 等字載好再淡入，一樣最多等 MAX_WAIT_MS。已經在畫面上的部分不受影響。回傳停止監看的函式。
 export function holdNewTextUntilFontsReady(container) {
   if (!container || !document.fonts?.load || !document.fonts.check) return () => {}
 
-  // 已經顯示過的文字節點，記下當時的內容；內容變了就當成新文字
-  const shown = new WeakMap()
-  const isShown = (node) => shown.get(node) === node.textContent
-  const markAllShown = () => {
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) shown.set(node, node.textContent)
-  }
-
+  const fadeIn = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  let added = new Set()
+  let held = new Set()
+  // 目前藏著的區塊還在等的字型
+  let pendingLoads = []
   let scheduled = false
   let round = 0
-  // 藏起來的時間點；接連出現新文字時不重新計時，總共最多藏 MAX_WAIT_MS
+  // 藏起來的時間點；接連出現新區塊時不重新計時，總共最多藏 MAX_WAIT_MS
   let hiddenSince = null
+
   const settle = () => {
     scheduled = false
-    const missing = [...visibleTextByFont(container, isShown)].filter(([font, text]) => !fontReady(font, text))
-    if (!missing.length) {
-      if (hiddenSince === null) markAllShown()
-      return
+    const blocks = [...added].filter((el) => el.isConnected)
+    added = new Set()
+    const loads = []
+    for (const el of blocks) {
+      const missing = [...visibleTextByFont(el)].filter(([font, text]) => !fontReady(font, text))
+      if (!missing.length) continue
+      el.classList.add('fonts-pending')
+      held.add(el)
+      loads.push(...missing.map(([font, text]) => document.fonts.load(font, text).catch(() => [])))
     }
+    if (!loads.length) return
     const current = ++round
     const start = hiddenSince ?? performance.now()
     hiddenSince = start
-    container.classList.add('fonts-pending')
     const show = (reason) => {
       if (current !== round) return
       round++
       hiddenSince = null
-      markAllShown()
-      container.classList.remove('fonts-pending')
+      for (const el of held) {
+        el.classList.remove('fonts-pending')
+        if (fadeIn && el.isConnected) el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: 'ease' })
+      }
+      held = new Set()
+      pendingLoads = []
       performance.measure('fonts-held', { start, detail: reason })
     }
     setTimeout(() => show('timeout'), Math.max(0, start + MAX_WAIT_MS - performance.now()))
-    Promise.all(missing.map(([font, text]) => document.fonts.load(font, text).catch(() => []))).then(() => show('fonts-ready'))
+    // 前一輪還藏著的區塊也一起等，前一輪的 show 已經作廢
+    Promise.all([...loads, ...pendingLoads]).then(() => show('fonts-ready'))
+    pendingLoads = loads
   }
 
-  const observer = new MutationObserver(() => {
-    if (scheduled) return
+  const observer = new MutationObserver((records) => {
+    for (const record of records) {
+      if (record.type === 'characterData') {
+        if (record.target.parentElement) added.add(record.target.parentElement)
+        continue
+      }
+      for (const node of record.addedNodes) {
+        const el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement
+        if (el) added.add(el)
+      }
+    }
+    if (scheduled || !added.size) return
     scheduled = true
     // 等這一輪 React 畫完、版面算好再看
     requestAnimationFrame(settle)
   })
   observer.observe(container, { childList: true, subtree: true, characterData: true })
-  settle()
   return () => {
     observer.disconnect()
     round++
     hiddenSince = null
-    container.classList.remove('fonts-pending')
+    for (const el of held) el.classList.remove('fonts-pending')
+    held = new Set()
   }
 }
 
@@ -105,14 +123,14 @@ function firstScreenFontLoads() {
   return [...visibleTextByFont(root)].map(([font, text]) => document.fonts.load(font, text).catch(() => []))
 }
 
-// root 裡目前在視窗範圍內的文字，依字型分組；skip(node) 為 true 的文字節點略過
-function visibleTextByFont(root, skip = () => false) {
+// root 裡目前在視窗範圍內的文字，依字型分組
+function visibleTextByFont(root) {
   const textByFont = new Map()
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = node.textContent.trim()
     const el = node.parentElement
-    if (!text || !el || skip(node)) continue
+    if (!text || !el) continue
     const rect = el.getBoundingClientRect()
     if (!rect.width || rect.bottom < 0 || rect.top > window.innerHeight) continue
     const style = getComputedStyle(el)
