@@ -34,10 +34,19 @@ export function revealWhenFontsReady({ alsoWaitFor = null } = {}) {
 
 // 第一個畫面之後，文章、分類、關於我的正式內容才從後台載入，換頁也會畫出新的文字。
 // 字型檔是依文字分成很多小檔，新出現的字常要再下載，瀏覽器會先用系統字、下載完再換字。
-// 所以 container 裡一出現字型還沒載好的文字，就先把它藏起來，等畫面裡看得到的字載好再淡入，
-// 一樣最多等 MAX_WAIT_MS。回傳停止監看的函式。
+// 所以 container 裡一出現字型還沒載好的新文字，就先把它藏起來，等畫面裡看得到的字載好再淡入，
+// 一樣最多等 MAX_WAIT_MS。已經顯示過的文字（包括等到時間上限才顯示的）不會讓畫面再藏一次。
+// 回傳停止監看的函式。
 export function holdNewTextUntilFontsReady(container) {
   if (!container || !document.fonts?.load || !document.fonts.check) return () => {}
+
+  // 已經顯示過的文字節點，記下當時的內容；內容變了就當成新文字
+  const shown = new WeakMap()
+  const isShown = (node) => shown.get(node) === node.textContent
+  const markAllShown = () => {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) shown.set(node, node.textContent)
+  }
 
   let scheduled = false
   let round = 0
@@ -45,8 +54,11 @@ export function holdNewTextUntilFontsReady(container) {
   let hiddenSince = null
   const settle = () => {
     scheduled = false
-    const missing = [...visibleTextByFont(container)].filter(([font, text]) => !fontReady(font, text))
-    if (!missing.length) return
+    const missing = [...visibleTextByFont(container, isShown)].filter(([font, text]) => !fontReady(font, text))
+    if (!missing.length) {
+      if (hiddenSince === null) markAllShown()
+      return
+    }
     const current = ++round
     const start = hiddenSince ?? performance.now()
     hiddenSince = start
@@ -55,6 +67,7 @@ export function holdNewTextUntilFontsReady(container) {
       if (current !== round) return
       round++
       hiddenSince = null
+      markAllShown()
       container.classList.remove('fonts-pending')
       performance.measure('fonts-held', { start, detail: reason })
     }
@@ -92,14 +105,14 @@ function firstScreenFontLoads() {
   return [...visibleTextByFont(root)].map(([font, text]) => document.fonts.load(font, text).catch(() => []))
 }
 
-// root 裡目前在視窗範圍內的文字，依字型分組
-function visibleTextByFont(root) {
+// root 裡目前在視窗範圍內的文字，依字型分組；skip(node) 為 true 的文字節點略過
+function visibleTextByFont(root, skip = () => false) {
   const textByFont = new Map()
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = node.textContent.trim()
     const el = node.parentElement
-    if (!text || !el) continue
+    if (!text || !el || skip(node)) continue
     const rect = el.getBoundingClientRect()
     if (!rect.width || rect.bottom < 0 || rect.top > window.innerHeight) continue
     const style = getComputedStyle(el)
