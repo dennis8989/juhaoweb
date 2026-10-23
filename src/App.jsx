@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
@@ -28,6 +28,7 @@ import {
 } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 import { pageMetaFor, usePageMeta } from './lib/seo.js'
+import { holdNewTextUntilFontsReady } from './lib/fontGate.js'
 
 // The admin (with its rich-text editor) is a separate download, fetched only when /admin is opened.
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
@@ -127,6 +128,12 @@ function App() {
     if (viewedArticleId && user === null) recordArticleView(viewedArticleId)
   }, [viewedArticleId, user])
 
+  const mainRef = useRef(null)
+  const isAdmin = route.view === 'admin'
+  // Content loaded after the first screen (and each new page) waits for its web fonts instead of
+  // showing the system font first; see fontGate.js.
+  useEffect(() => (isAdmin ? undefined : holdNewTextUntilFontsReady(mainRef.current)), [isAdmin])
+
   useEffect(() => {
     // Same rule as the view counter: only signed-out readers on public pages, after the login check.
     if (user !== undefined) setAnalyticsEnabled(user === null && route.view !== 'admin')
@@ -193,7 +200,7 @@ function App() {
   return (
     <div className="app">
       {navbar}
-      <main className={`page ${route.view === 'about' ? 'page-about' : ''} ${isTopicPage ? 'page-topic' : ''}`}>
+      <main ref={mainRef} className={`page ${route.view === 'about' ? 'page-about' : ''} ${isTopicPage ? 'page-topic' : ''}`}>
         {isTopicPage && topicMeta && (
           <TopicHero
             title={topicMeta.title}
