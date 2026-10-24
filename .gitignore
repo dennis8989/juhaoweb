@@ -28,6 +28,10 @@ dist-ssr
 .env.local
 .env.production
 
+# Built by scripts/build-fonts.mjs (npm run fonts); the source fonts it downloads live in .cache/fonts
+/public/fonts/
+/.cache/
+
 # Amplify Gen 2
 .amplify
 # amplify_outputs.json is tracked on purpose: all branches share one backend (no sandbox)

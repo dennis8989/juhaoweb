@@ -40,6 +40,37 @@ function noindexOutsideProductionPlugin(siteEnv) {
   }
 }
 
+// Preloads the subset web fonts that scripts/build-fonts.mjs wrote to public/fonts/ and declares their
+// @font-face rules inline in <style id="core-fonts">, which src/lib/fontGate.js reads to know which
+// characters they cover (the rest come from font.emtech.cc, added by fontGate.js on demand).
+// Without a manifest (fonts not built yet) nothing is injected and the page runs on font.emtech.cc alone.
+function coreFontsPlugin() {
+  const manifestPath = path.join(rootDir, 'public', 'fonts', 'manifest.json')
+  let base = '/'
+  return {
+    name: 'core-fonts',
+    configResolved(config) {
+      base = config.base
+    },
+    transformIndexHtml() {
+      if (!fs.existsSync(manifestPath)) return []
+      const { faces } = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+      const href = (face) => `${base}fonts/${face.file}`
+      const css = faces
+        .map((face) => `@font-face{font-family:'${face.family}';font-style:normal;font-weight:${face.weight};font-display:swap;src:url(${href(face)}) format('woff2');unicode-range:${face.ranges}}`)
+        .join('\n')
+      return [
+        ...faces.map((face) => ({
+          tag: 'link',
+          attrs: { rel: 'preload', as: 'font', type: 'font/woff2', href: href(face), crossorigin: true },
+          injectTo: 'head',
+        })),
+        { tag: 'style', attrs: { id: 'core-fonts' }, children: css, injectTo: 'head' },
+      ]
+    },
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   appType: 'spa',
@@ -49,6 +80,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     amplifyOutputsPlugin(),
     noindexOutsideProductionPlugin(loadEnv(mode, rootDir, 'VITE_').VITE_SITE_ENV),
+    coreFontsPlugin(),
   ],
   build: {
     outDir: 'dist',

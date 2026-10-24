@@ -34,3 +34,5 @@ frontend:
     paths:
       - .npm/**/*
       - node_modules/**/*
+      # Source fonts (about 60 MB) that scripts/build-fonts.mjs subsets; downloaded once, not every build.
+      - .cache/fonts/**/*

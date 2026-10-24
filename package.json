@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/build-seo.mjs",
+    "build": "node scripts/build-fonts.mjs && vite build && node scripts/build-seo.mjs",
+    "fonts": "node scripts/build-fonts.mjs",
     "preview": "vite preview",
     "seed:articles": "node scripts/seed-articles.mjs"
   },
@@ -38,6 +39,7 @@
     "aws-cdk-lib": "^2.244.0",
     "constructs": "^10.8.1",
     "esbuild": "^0.28.2",
+    "subset-font": "^2.9.0",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "vite": "^4.5.0"
