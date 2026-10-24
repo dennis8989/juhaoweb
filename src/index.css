@@ -68,6 +68,13 @@
   --font-hand: 'Iansui', 'GenSenRoundedTW', cursive;
 }
 
+/* 網頁字型等不到時的系統字模式（src/lib/fontGate.js）：整頁一致用系統字，換頁時再換回網頁字型 */
+html.fonts-fallback {
+  --font-sans: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --font-serif: 'Songti TC', 'Noto Serif TC', 'PMingLiU', serif;
+  --font-hand: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+
 /* 各區塊的字型、粗細、大小（少數含顏色），App.css 以 var(--type-…) 取用 */
 :root {
   /* 導覽列 */

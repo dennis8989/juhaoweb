@@ -1,7 +1,7 @@
+// 第一個畫面從打開網頁起最多等這麼久；index.html 的保底顯示（5 秒）要比這個晚
+const MAX_BLANK_MS = 4500
+// 之後才出現的區塊（文章、換頁）最多藏這麼久
 const MAX_WAIT_MS = 1500
-const MAX_BLANK_MS = 2500
-// 關於我頁要連醫師照片一起出現，所以可以多等一點；index.html 的保底顯示要比這個晚
-const MAX_BLANK_WITH_PHOTO_MS = 4000
 
 // 網頁字型分兩層（見 index.html）：
 // 1. 核心字型檔：建置時依網站內容切好的四個檔（public/fonts/，scripts/build-fonts.mjs），index.html 會預先載入，
@@ -19,10 +19,11 @@ const FALLBACK_FONT_CSS = [
 ]
 
 // 第一次開網頁時字型檔還沒下載，瀏覽器會先用系統字、下載完再換字。
-// index.html 先用 fonts-loading 把畫面藏起來；這裡只等第一個畫面用到的字型再淡入。
-// 最多等 MAX_WAIT_MS，而且從打開網頁起算不超過 MAX_BLANK_MS，網路慢時不讓訪客空等。
-// 有傳 alsoWaitFor（關於我頁的醫師照片）時，字型和照片都好了才一起淡入，
-// 從打開網頁起算最多等 MAX_BLANK_WITH_PHOTO_MS；照片來不及就先顯示網頁，照片之後再淡入。
+// index.html 先用 fonts-loading 把畫面藏起來；這裡等第一個畫面用到的字型到齊再淡入，
+// 從打開網頁起算最多等 MAX_BLANK_MS。等不到就進入「系統字模式」（html.fonts-fallback，index.css 把三組字型
+// 變數換成系統字）：整頁一致地用系統字，不會一塊一塊換字；字型檔在背景繼續下載，
+// 換頁時（restoreWebFontsIfReady）或下次打開網頁再換回網頁字型。
+// 有傳 alsoWaitFor（關於我頁的醫師照片）時，字型和照片都好了才一起淡入；照片來不及就先顯示網頁，照片之後再淡入。
 export function revealWhenFontsReady({ alsoWaitFor = null } = {}) {
   const html = document.documentElement
   if (!html.classList.contains('fonts-loading')) return
@@ -40,12 +41,34 @@ export function revealWhenFontsReady({ alsoWaitFor = null } = {}) {
     return
   }
 
-  const waitMs = alsoWaitFor
-    ? Math.max(0, MAX_BLANK_WITH_PHOTO_MS - performance.now())
-    : Math.min(MAX_WAIT_MS, Math.max(0, MAX_BLANK_MS - performance.now()))
-  setTimeout(() => reveal('timeout'), waitMs)
   const loads = [...visibleTextByFont(document.getElementById('root'))].flatMap(([font, group]) => fontLoads(font, group))
+  let fontsDone = false
+  Promise.all(loads).then(() => {
+    fontsDone = true
+  })
+  setTimeout(() => {
+    if (!fontsDone && coreFaces().length) {
+      html.classList.add('fonts-fallback')
+      reveal('timeout-system-font')
+    } else {
+      reveal('timeout')
+    }
+  }, Math.max(0, MAX_BLANK_MS - performance.now()))
   Promise.all([...loads, alsoWaitFor]).then(() => reveal(alsoWaitFor ? 'fonts-and-photo-ready' : 'fonts-ready'))
+}
+
+// 系統字模式中，換頁的時候呼叫：核心字型檔已經都到了就換回網頁字型。新頁面本來就是全新的畫面，
+// 這時換字訪客看不出來。還沒到就維持系統字，下次換頁再看
+export function restoreWebFontsIfReady() {
+  const html = document.documentElement
+  if (!html.classList.contains('fonts-fallback')) return
+  if (!coreFaces().every((face) => face.status === 'loaded')) return
+  html.classList.remove('fonts-fallback')
+  performance.mark('fonts-restored')
+}
+
+function inSystemFontMode() {
+  return document.documentElement.classList.contains('fonts-fallback')
 }
 
 // 第一個畫面之後，文章、分類、關於我的正式內容才從後台載入，換頁也會畫出新的文字。
@@ -69,6 +92,8 @@ export function holdNewTextUntilFontsReady(container) {
     scheduled = false
     const blocks = [...added].filter((el) => el.isConnected)
     added = new Set()
+    // 系統字模式整頁都是系統字，新區塊不必等
+    if (inSystemFontMode()) return
     const loads = []
     for (const el of blocks) {
       const missing = [...visibleTextByFont(el)].filter(([font, group]) => !fontReady(font, group))

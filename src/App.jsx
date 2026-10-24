@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getCurrentUser, signOut } from 'aws-amplify/auth'
 import './App.css'
 import { go, handleRouteClick, parseHash, toHref } from './lib/hash.js'
@@ -28,7 +28,7 @@ import {
 } from './data/articlesRepository.js'
 import { contentToHtml, htmlHasImages, looksLikeHtml, resolveArticleHtml, sanitizeArticleHtml } from './lib/articleHtml.js'
 import { pageMetaFor, usePageMeta } from './lib/seo.js'
-import { holdNewTextUntilFontsReady } from './lib/fontGate.js'
+import { holdNewTextUntilFontsReady, restoreWebFontsIfReady } from './lib/fontGate.js'
 
 // The admin (with its rich-text editor) is a separate download, fetched only when /admin is opened.
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
@@ -127,6 +127,12 @@ function App() {
     // `user` is undefined until the login check finishes; signed-in admins aren't counted as readers.
     if (viewedArticleId && user === null) recordArticleView(viewedArticleId)
   }, [viewedArticleId, user])
+
+  // If the first screen gave up waiting for the web fonts, swap them back in with the new page, before
+  // it is painted, so the change is never seen as a swap (see fontGate.js).
+  useLayoutEffect(() => {
+    restoreWebFontsIfReady()
+  }, [route.view, route.sub])
 
   const mainRef = useRef(null)
   const isAdmin = route.view === 'admin'
